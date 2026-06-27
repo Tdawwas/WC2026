@@ -50,12 +50,12 @@ export default function Home() {
     { refreshInterval: 30_000, revalidateOnFocus: true, dedupingInterval: 10_000 }
   );
 
-  // Rounds + knockout uses full tournament schedule
+  // Full tournament schedule — used by both Rounds and Groups tabs
   const {
     data: fullSchedule,
     isLoading: fullLoading,
   } = useSWR<{ matches: Match[] }>(
-    tab === 'rounds' ? '/api/schedule' : null,
+    (tab === 'rounds' || tab === 'groups') ? '/api/schedule' : null,
     fetcher,
     { refreshInterval: 60_000, dedupingInterval: 30_000 }
   );
@@ -199,7 +199,8 @@ export default function Home() {
         {tab === 'groups' && (
           <GroupsView
             groups={standingsData?.groups ?? []}
-            isLoading={standingsLoading}
+            scheduleMatches={fullSchedule?.matches ?? []}
+            isLoading={standingsLoading || fullLoading}
             error={!!standingsError}
           />
         )}
