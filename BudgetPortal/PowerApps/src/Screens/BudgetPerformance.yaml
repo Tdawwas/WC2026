@@ -1,0 +1,563 @@
+##
+## Screen: BudgetPerformance
+## Purpose: Display budget vs actual performance by department/cost center
+##
+
+BudgetPerformanceScreen:
+  Type: Screen
+  Fill: =RGBA(245, 247, 250, 1)
+
+  ##──────────────────────────────────────────
+  ## TOP HEADER BAR
+  ##──────────────────────────────────────────
+  HeaderRectangle:
+    Type: Rectangle
+    X: =0
+    Y: =0
+    Width: =Parent.Width
+    Height: =70
+    Fill: =RGBA(0, 70, 127, 1)   # Dark blue – corporate brand color
+
+  AppTitleLabel:
+    Type: Label
+    X: =20
+    Y: =15
+    Width: =400
+    Height: =40
+    Text: ="Budget Performance Portal"
+    Color: =White
+    Size: =20
+    FontWeight: =FontWeight.Bold
+
+  CurrentDateLabel:
+    Type: Label
+    X: =Parent.Width - 220
+    Y: =20
+    Width: =200
+    Height: =30
+    Text: =Text(Now(), "dd/mm/yyyy hh:mm")
+    Color: =RGBA(200, 220, 255, 1)
+    Align: =Align.Right
+    Size: =13
+
+  ##──────────────────────────────────────────
+  ## NAVIGATION TABS
+  ##──────────────────────────────────────────
+  NavBudgetButton:
+    Type: Button
+    X: =0
+    Y: =70
+    Width: =Parent.Width / 2
+    Height: =45
+    Text: ="Budget Performance"
+    Fill: =RGBA(0, 120, 212, 1)
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    BorderRadius: =0
+    OnSelect: =Navigate(BudgetPerformanceScreen, ScreenTransition.None)
+
+  NavTransferButton:
+    Type: Button
+    X: =Parent.Width / 2
+    Y: =70
+    Width: =Parent.Width / 2
+    Height: =45
+    Text: ="Transfer Requests"
+    Fill: =RGBA(230, 235, 245, 1)
+    Color: =RGBA(0, 70, 127, 1)
+    FontWeight: =FontWeight.Semibold
+    BorderRadius: =0
+    OnSelect: =Navigate(TransferRequestScreen, ScreenTransition.Fade)
+
+  ##──────────────────────────────────────────
+  ## FILTER ROW
+  ##──────────────────────────────────────────
+  FilterLabel:
+    Type: Label
+    X: =20
+    Y: =130
+    Width: =80
+    Height: =35
+    Text: ="Filters:"
+    Size: =14
+    FontWeight: =FontWeight.Semibold
+    Color: =RGBA(50, 50, 80, 1)
+
+  YearDropdown:
+    Type: Dropdown
+    X: =100
+    Y: =130
+    Width: =130
+    Height: =35
+    Items: =["2024", "2025", "2026"]
+    Default: ="2026"
+
+  PeriodDropdown:
+    Type: Dropdown
+    X: =245
+    Y: =130
+    Width: =150
+    Height: =35
+    Items: =["All Periods", "Q1", "Q2", "Q3", "Q4", "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+    Default: ="All Periods"
+
+  DeptDropdown:
+    Type: Dropdown
+    X: =410
+    Y: =130
+    Width: =200
+    Height: =35
+    Items: =Distinct(BudgetData, Department)
+    Default: ="All Departments"
+
+  ApplyFilterButton:
+    Type: Button
+    X: =625
+    Y: =130
+    Width: =110
+    Height: =35
+    Text: ="Apply"
+    Fill: =RGBA(0, 120, 212, 1)
+    Color: =White
+    BorderRadius: =6
+    OnSelect: |
+      =ClearCollect(
+        FilteredBudget,
+        Filter(
+          BudgetData,
+          (DeptDropdown.Selected.Value = "All Departments" || Department = DeptDropdown.Selected.Value),
+          Year = Value(YearDropdown.Selected.Value)
+        )
+      )
+
+  ExportButton:
+    Type: Button
+    X: =Parent.Width - 130
+    Y: =130
+    Width: =110
+    Height: =35
+    Text: ="Export CSV"
+    Fill: =RGBA(16, 124, 16, 1)
+    Color: =White
+    BorderRadius: =6
+    # When Power Automate is connected, replace with a flow call:
+    # OnSelect: =BudgetExportFlow.Run(JSON(FilteredBudget))
+    OnSelect: =Notify("Export will be available once Power Automate is connected.", NotificationType.Information)
+
+  ##──────────────────────────────────────────
+  ## KPI SUMMARY CARDS  (row of 4)
+  ##──────────────────────────────────────────
+
+  # Card 1 – Total Budget
+  Card1Rect:
+    Type: Rectangle
+    X: =20
+    Y: =185
+    Width: =(Parent.Width - 100) / 4
+    Height: =100
+    Fill: =White
+    BorderRadius: =10
+    DropShadow: =DropShadow.Light
+
+  Card1Title:
+    Type: Label
+    X: =30
+    Y: =195
+    Width: =(Parent.Width - 100) / 4 - 20
+    Height: =25
+    Text: ="Total Budget"
+    Size: =12
+    Color: =RGBA(100, 100, 120, 1)
+
+  Card1Value:
+    Type: Label
+    X: =30
+    Y: =220
+    Width: =(Parent.Width - 100) / 4 - 20
+    Height: =40
+    Text: =Text(Sum(FilteredBudget, BudgetAmount), "$#,##0")
+    Size: =22
+    FontWeight: =FontWeight.Bold
+    Color: =RGBA(0, 70, 127, 1)
+
+  Card1Sub:
+    Type: Label
+    X: =30
+    Y: =260
+    Width: =(Parent.Width - 100) / 4 - 20
+    Height: =20
+    Text: ="Approved Budget"
+    Size: =11
+    Color: =RGBA(150, 150, 170, 1)
+
+  # Card 2 – Actual Spend
+  Card2Rect:
+    Type: Rectangle
+    X: =40 + (Parent.Width - 100) / 4
+    Y: =185
+    Width: =(Parent.Width - 100) / 4
+    Height: =100
+    Fill: =White
+    BorderRadius: =10
+    DropShadow: =DropShadow.Light
+
+  Card2Title:
+    Type: Label
+    X: =50 + (Parent.Width - 100) / 4
+    Y: =195
+    Width: =(Parent.Width - 100) / 4 - 20
+    Height: =25
+    Text: ="Actual Spend"
+    Size: =12
+    Color: =RGBA(100, 100, 120, 1)
+
+  Card2Value:
+    Type: Label
+    X: =50 + (Parent.Width - 100) / 4
+    Y: =220
+    Width: =(Parent.Width - 100) / 4 - 20
+    Height: =40
+    Text: =Text(Sum(FilteredBudget, ActualAmount), "$#,##0")
+    Size: =22
+    FontWeight: =FontWeight.Bold
+    Color: =RGBA(0, 70, 127, 1)
+
+  Card2Sub:
+    Type: Label
+    X: =50 + (Parent.Width - 100) / 4
+    Y: =260
+    Width: =(Parent.Width - 100) / 4 - 20
+    Height: =20
+    Text: ="YTD Actuals"
+    Size: =11
+    Color: =RGBA(150, 150, 170, 1)
+
+  # Card 3 – Variance
+  Card3Rect:
+    Type: Rectangle
+    X: =60 + 2 * (Parent.Width - 100) / 4
+    Y: =185
+    Width: =(Parent.Width - 100) / 4
+    Height: =100
+    Fill: =White
+    BorderRadius: =10
+    DropShadow: =DropShadow.Light
+
+  Card3Title:
+    Type: Label
+    X: =70 + 2 * (Parent.Width - 100) / 4
+    Y: =195
+    Width: =(Parent.Width - 100) / 4 - 20
+    Height: =25
+    Text: ="Variance"
+    Size: =12
+    Color: =RGBA(100, 100, 120, 1)
+
+  Card3Value:
+    Type: Label
+    X: =70 + 2 * (Parent.Width - 100) / 4
+    Y: =220
+    Width: =(Parent.Width - 100) / 4 - 20
+    Height: =40
+    # Positive variance = under budget (good). Negative = over budget (bad).
+    Text: =Text(Sum(FilteredBudget, BudgetAmount) - Sum(FilteredBudget, ActualAmount), "$#,##0")
+    Size: =22
+    FontWeight: =FontWeight.Bold
+    Color: =If(
+              Sum(FilteredBudget, BudgetAmount) - Sum(FilteredBudget, ActualAmount) >= 0,
+              RGBA(16, 124, 16, 1),
+              RGBA(196, 43, 28, 1)
+            )
+
+  Card3Sub:
+    Type: Label
+    X: =70 + 2 * (Parent.Width - 100) / 4
+    Y: =260
+    Width: =(Parent.Width - 100) / 4 - 20
+    Height: =20
+    Text: ="Budget vs Actual"
+    Size: =11
+    Color: =RGBA(150, 150, 170, 1)
+
+  # Card 4 – % Utilization
+  Card4Rect:
+    Type: Rectangle
+    X: =80 + 3 * (Parent.Width - 100) / 4
+    Y: =185
+    Width: =(Parent.Width - 100) / 4
+    Height: =100
+    Fill: =White
+    BorderRadius: =10
+    DropShadow: =DropShadow.Light
+
+  Card4Title:
+    Type: Label
+    X: =90 + 3 * (Parent.Width - 100) / 4
+    Y: =195
+    Width: =(Parent.Width - 100) / 4 - 20
+    Height: =25
+    Text: ="Utilization %"
+    Size: =12
+    Color: =RGBA(100, 100, 120, 1)
+
+  Card4Value:
+    Type: Label
+    X: =90 + 3 * (Parent.Width - 100) / 4
+    Y: =220
+    Width: =(Parent.Width - 100) / 4 - 20
+    Height: =40
+    Text: =Text(
+              If(
+                Sum(FilteredBudget, BudgetAmount) = 0, 0,
+                Sum(FilteredBudget, ActualAmount) / Sum(FilteredBudget, BudgetAmount) * 100
+              ),
+              "0.0\%"
+            )
+    Size: =22
+    FontWeight: =FontWeight.Bold
+    Color: =RGBA(0, 70, 127, 1)
+
+  Card4Sub:
+    Type: Label
+    X: =90 + 3 * (Parent.Width - 100) / 4
+    Y: =260
+    Width: =(Parent.Width - 100) / 4 - 20
+    Height: =20
+    Text: ="Of Approved Budget"
+    Size: =11
+    Color: =RGBA(150, 150, 170, 1)
+
+  ##──────────────────────────────────────────
+  ## DETAIL TABLE HEADER
+  ##──────────────────────────────────────────
+  TableHeaderRect:
+    Type: Rectangle
+    X: =20
+    Y: =305
+    Width: =Parent.Width - 40
+    Height: =38
+    Fill: =RGBA(0, 70, 127, 1)
+    BorderRadius: =6
+
+  ColDept:
+    Type: Label
+    X: =30
+    Y: =312
+    Width: =200
+    Height: =25
+    Text: ="Department"
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    Size: =13
+
+  ColCostCenter:
+    Type: Label
+    X: =235
+    Y: =312
+    Width: =150
+    Height: =25
+    Text: ="Cost Center"
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    Size: =13
+
+  ColBudget:
+    Type: Label
+    X: =390
+    Y: =312
+    Width: =140
+    Height: =25
+    Text: ="Budget"
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    Size: =13
+    Align: =Align.Right
+
+  ColActual:
+    Type: Label
+    X: =535
+    Y: =312
+    Width: =140
+    Height: =25
+    Text: ="Actual"
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    Size: =13
+    Align: =Align.Right
+
+  ColVariance:
+    Type: Label
+    X: =680
+    Y: =312
+    Width: =120
+    Height: =25
+    Text: ="Variance"
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    Size: =13
+    Align: =Align.Right
+
+  ColPercent:
+    Type: Label
+    X: =805
+    Y: =312
+    Width: =100
+    Height: =25
+    Text: ="% Used"
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    Size: =13
+    Align: =Align.Right
+
+  ColStatus:
+    Type: Label
+    X: =910
+    Y: =312
+    Width: =100
+    Height: =25
+    Text: ="Status"
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    Size: =13
+    Align: =Align.Center
+
+  ##──────────────────────────────────────────
+  ## BUDGET DETAIL GALLERY (scrollable rows)
+  ##──────────────────────────────────────────
+  BudgetGallery:
+    Type: Gallery
+    Layout: =Layout.Vertical
+    X: =20
+    Y: =343
+    Width: =Parent.Width - 40
+    Height: =Parent.Height - 410
+    Items: =FilteredBudget
+    TemplatePadding: =0
+    TemplateSize: =50
+    ShowScrollbar: =true
+
+    RowBackground:
+      Type: Rectangle
+      Width: =Parent.Width
+      Height: =48
+      Fill: =If(Mod(ThisItem.Index, 2) = 0, RGBA(245, 248, 255, 1), White)
+
+    RowDept:
+      Type: Label
+      X: =10
+      Y: =12
+      Width: =200
+      Height: =25
+      Text: =ThisItem.Department
+      Size: =13
+
+    RowCostCenter:
+      Type: Label
+      X: =215
+      Y: =12
+      Width: =150
+      Height: =25
+      Text: =ThisItem.CostCenter
+      Size: =13
+
+    RowBudget:
+      Type: Label
+      X: =370
+      Y: =12
+      Width: =140
+      Height: =25
+      Text: =Text(ThisItem.BudgetAmount, "$#,##0")
+      Size: =13
+      Align: =Align.Right
+
+    RowActual:
+      Type: Label
+      X: =515
+      Y: =12
+      Width: =140
+      Height: =25
+      Text: =Text(ThisItem.ActualAmount, "$#,##0")
+      Size: =13
+      Align: =Align.Right
+
+    RowVariance:
+      Type: Label
+      X: =660
+      Y: =12
+      Width: =120
+      Height: =25
+      Text: =Text(ThisItem.BudgetAmount - ThisItem.ActualAmount, "$#,##0")
+      Size: =13
+      Align: =Align.Right
+      Color: =If(
+                ThisItem.BudgetAmount - ThisItem.ActualAmount >= 0,
+                RGBA(16, 124, 16, 1),
+                RGBA(196, 43, 28, 1)
+              )
+
+    RowPercent:
+      Type: Label
+      X: =785
+      Y: =12
+      Width: =100
+      Height: =25
+      Text: =Text(
+                If(
+                  ThisItem.BudgetAmount = 0, 0,
+                  ThisItem.ActualAmount / ThisItem.BudgetAmount * 100
+                ),
+                "0.0\%"
+              )
+      Size: =13
+      Align: =Align.Right
+
+    RowStatusBadge:
+      Type: Label
+      X: =890
+      Y: =10
+      Width: =100
+      Height: =28
+      BorderRadius: =14
+      Text: =If(
+               ThisItem.ActualAmount / ThisItem.BudgetAmount > 1, "Over Budget",
+               ThisItem.ActualAmount / ThisItem.BudgetAmount > 0.9, "At Risk",
+               "On Track"
+             )
+      Color: =White
+      FontWeight: =FontWeight.Bold
+      Size: =11
+      Align: =Align.Center
+      Fill: =Switch(
+              True,
+              ThisItem.ActualAmount / ThisItem.BudgetAmount > 1, RGBA(196, 43, 28, 1),
+              ThisItem.ActualAmount / ThisItem.BudgetAmount > 0.9, RGBA(255, 140, 0, 1),
+              RGBA(16, 124, 16, 1)
+            )
+
+    RowDivider:
+      Type: Rectangle
+      Y: =48
+      Width: =Parent.Width
+      Height: =1
+      Fill: =RGBA(220, 225, 235, 1)
+
+  ##──────────────────────────────────────────
+  ## FOOTER
+  ##──────────────────────────────────────────
+  FooterRect:
+    Type: Rectangle
+    X: =0
+    Y: =Parent.Height - 35
+    Width: =Parent.Width
+    Height: =35
+    Fill: =RGBA(0, 70, 127, 1)
+
+  FooterLabel:
+    Type: Label
+    X: =20
+    Y: =Parent.Height - 30
+    Width: =Parent.Width - 40
+    Height: =25
+    Text: ="Budget Performance Portal  |  Data source: Local (connect Excel / Oracle EPS via Power Automate)"
+    Color: =RGBA(200, 220, 255, 1)
+    Size: =11

@@ -1,0 +1,84 @@
+##
+## App: BudgetPortal
+## Canvas App – Tablet layout (1366 x 768)
+##
+
+App:
+  BackEnabled: =true
+  Theme: =RGBA(0, 70, 127, 1)
+  StartScreen: =BudgetPerformanceScreen
+
+  ##──────────────────────────────────────────
+  ## OnStart – Load sample data into Collections
+  ## Replace these with your real data source once
+  ## Power Automate / Excel / Oracle EPS is connected.
+  ##──────────────────────────────────────────
+  OnStart: |
+    =ClearCollect(
+      BudgetData,
+      /* ── SAMPLE DATA – replace with your Excel table or SharePoint list ── */
+      {Department: "Finance",        CostCenter: "CC-1001", Year: 2026, BudgetAmount: 850000,  ActualAmount: 612000},
+      {Department: "Finance",        CostCenter: "CC-1002", Year: 2026, BudgetAmount: 320000,  ActualAmount: 298000},
+      {Department: "Operations",     CostCenter: "CC-2001", Year: 2026, BudgetAmount: 1200000, ActualAmount: 1150000},
+      {Department: "Operations",     CostCenter: "CC-2002", Year: 2026, BudgetAmount: 540000,  ActualAmount: 489000},
+      {Department: "IT",             CostCenter: "CC-3001", Year: 2026, BudgetAmount: 960000,  ActualAmount: 1020000},
+      {Department: "IT",             CostCenter: "CC-3002", Year: 2026, BudgetAmount: 420000,  ActualAmount: 310000},
+      {Department: "HR",             CostCenter: "CC-4001", Year: 2026, BudgetAmount: 380000,  ActualAmount: 275000},
+      {Department: "Marketing",      CostCenter: "CC-5001", Year: 2026, BudgetAmount: 720000,  ActualAmount: 695000},
+      {Department: "Marketing",      CostCenter: "CC-5002", Year: 2026, BudgetAmount: 180000,  ActualAmount: 192000},
+      {Department: "Project Mgmt",   CostCenter: "CC-6001", Year: 2026, BudgetAmount: 650000,  ActualAmount: 420000}
+    );
+    ClearCollect(
+      FilteredBudget,
+      BudgetData        /* Initial display – all departments */
+    );
+    ClearCollect(
+      TransferData,
+      /* Sample transfer requests */
+      {
+        RequestRef: "TR-20260601-001",
+        RequestDate: DateValue("2026-06-01"),
+        RequestedBy: "Ahmed Al-Dawwas",
+        RequestedByEmail: "tdawwas83@gmail.com",
+        FromDepartment: "IT",
+        FromCostCenter: "CC-3002",
+        ToDepartment: "IT",
+        ToCostCenter: "CC-3001",
+        TransferAmount: 50000,
+        Justification: "Cover IT infrastructure overrun in CC-3001",
+        Priority: "Urgent",
+        Status: "Pending"
+      },
+      {
+        RequestRef: "TR-20260610-002",
+        RequestDate: DateValue("2026-06-10"),
+        RequestedBy: "Ahmed Al-Dawwas",
+        RequestedByEmail: "tdawwas83@gmail.com",
+        FromDepartment: "Finance",
+        FromCostCenter: "CC-1001",
+        ToDepartment: "Marketing",
+        ToCostCenter: "CC-5002",
+        TransferAmount: 12000,
+        Justification: "WC2026 campaign additional spend",
+        Priority: "Normal",
+        Status: "Approved"
+      },
+      {
+        RequestRef: "TR-20260615-003",
+        RequestDate: DateValue("2026-06-15"),
+        RequestedBy: "Ahmed Al-Dawwas",
+        RequestedByEmail: "tdawwas83@gmail.com",
+        FromDepartment: "HR",
+        FromCostCenter: "CC-4001",
+        ToDepartment: "Operations",
+        ToCostCenter: "CC-2001",
+        TransferAmount: 30000,
+        Justification: "Headcount reallocation Q3",
+        Priority: "Normal",
+        Status: "Rejected"
+      }
+    );
+    ClearCollect(
+      TransferRequests,
+      TransferData
+    )

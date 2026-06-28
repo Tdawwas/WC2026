@@ -1,0 +1,747 @@
+##
+## Screen: TransferRequest
+## Purpose: Submit and track budget transfer requests between cost centers
+##
+
+TransferRequestScreen:
+  Type: Screen
+  Fill: =RGBA(245, 247, 250, 1)
+
+  OnVisible: |
+    =ClearCollect(
+      TransferRequests,
+      Filter(TransferData, Status <> "Deleted")
+    );
+    UpdateContext({ShowForm: false, SelectedRequest: Blank()})
+
+  ##──────────────────────────────────────────
+  ## HEADER (same as Budget screen for consistency)
+  ##──────────────────────────────────────────
+  HeaderRectangle:
+    Type: Rectangle
+    X: =0
+    Y: =0
+    Width: =Parent.Width
+    Height: =70
+    Fill: =RGBA(0, 70, 127, 1)
+
+  AppTitleLabel:
+    Type: Label
+    X: =20
+    Y: =15
+    Width: =400
+    Height: =40
+    Text: ="Budget Performance Portal"
+    Color: =White
+    Size: =20
+    FontWeight: =FontWeight.Bold
+
+  CurrentDateLabel:
+    Type: Label
+    X: =Parent.Width - 220
+    Y: =20
+    Width: =200
+    Height: =30
+    Text: =Text(Now(), "dd/mm/yyyy hh:mm")
+    Color: =RGBA(200, 220, 255, 1)
+    Align: =Align.Right
+    Size: =13
+
+  ##──────────────────────────────────────────
+  ## NAVIGATION TABS
+  ##──────────────────────────────────────────
+  NavBudgetButton:
+    Type: Button
+    X: =0
+    Y: =70
+    Width: =Parent.Width / 2
+    Height: =45
+    Text: ="Budget Performance"
+    Fill: =RGBA(230, 235, 245, 1)
+    Color: =RGBA(0, 70, 127, 1)
+    FontWeight: =FontWeight.Semibold
+    BorderRadius: =0
+    OnSelect: =Navigate(BudgetPerformanceScreen, ScreenTransition.Fade)
+
+  NavTransferButton:
+    Type: Button
+    X: =Parent.Width / 2
+    Y: =70
+    Width: =Parent.Width / 2
+    Height: =45
+    Text: ="Transfer Requests"
+    Fill: =RGBA(0, 120, 212, 1)
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    BorderRadius: =0
+    OnSelect: =Navigate(TransferRequestScreen, ScreenTransition.None)
+
+  ##──────────────────────────────────────────
+  ## STATUS SUMMARY CARDS
+  ##──────────────────────────────────────────
+  CardPendingRect:
+    Type: Rectangle
+    X: =20
+    Y: =130
+    Width: =(Parent.Width - 80) / 3
+    Height: =90
+    Fill: =White
+    BorderRadius: =10
+    DropShadow: =DropShadow.Light
+
+  CardPendingTitle:
+    Type: Label
+    X: =30
+    Y: =138
+    Width: =(Parent.Width - 80) / 3 - 20
+    Height: =22
+    Text: ="Pending Approval"
+    Size: =12
+    Color: =RGBA(100, 100, 120, 1)
+
+  CardPendingValue:
+    Type: Label
+    X: =30
+    Y: =160
+    Width: =(Parent.Width - 80) / 3 - 20
+    Height: =38
+    Text: =Text(CountIf(TransferRequests, Status = "Pending"), "0")
+    Size: =28
+    FontWeight: =FontWeight.Bold
+    Color: =RGBA(255, 140, 0, 1)
+
+  CardApprovedRect:
+    Type: Rectangle
+    X: =40 + (Parent.Width - 80) / 3
+    Y: =130
+    Width: =(Parent.Width - 80) / 3
+    Height: =90
+    Fill: =White
+    BorderRadius: =10
+    DropShadow: =DropShadow.Light
+
+  CardApprovedTitle:
+    Type: Label
+    X: =50 + (Parent.Width - 80) / 3
+    Y: =138
+    Width: =(Parent.Width - 80) / 3 - 20
+    Height: =22
+    Text: ="Approved"
+    Size: =12
+    Color: =RGBA(100, 100, 120, 1)
+
+  CardApprovedValue:
+    Type: Label
+    X: =50 + (Parent.Width - 80) / 3
+    Y: =160
+    Width: =(Parent.Width - 80) / 3 - 20
+    Height: =38
+    Text: =Text(CountIf(TransferRequests, Status = "Approved"), "0")
+    Size: =28
+    FontWeight: =FontWeight.Bold
+    Color: =RGBA(16, 124, 16, 1)
+
+  CardRejectedRect:
+    Type: Rectangle
+    X: =60 + 2 * (Parent.Width - 80) / 3
+    Y: =130
+    Width: =(Parent.Width - 80) / 3
+    Height: =90
+    Fill: =White
+    BorderRadius: =10
+    DropShadow: =DropShadow.Light
+
+  CardRejectedTitle:
+    Type: Label
+    X: =70 + 2 * (Parent.Width - 80) / 3
+    Y: =138
+    Width: =(Parent.Width - 80) / 3 - 20
+    Height: =22
+    Text: ="Rejected"
+    Size: =12
+    Color: =RGBA(100, 100, 120, 1)
+
+  CardRejectedValue:
+    Type: Label
+    X: =70 + 2 * (Parent.Width - 80) / 3
+    Y: =160
+    Width: =(Parent.Width - 80) / 3 - 20
+    Height: =38
+    Text: =Text(CountIf(TransferRequests, Status = "Rejected"), "0")
+    Size: =28
+    FontWeight: =FontWeight.Bold
+    Color: =RGBA(196, 43, 28, 1)
+
+  ##──────────────────────────────────────────
+  ## ACTION BAR
+  ##──────────────────────────────────────────
+  NewRequestButton:
+    Type: Button
+    X: =20
+    Y: =238
+    Width: =170
+    Height: =38
+    Text: ="+ New Transfer Request"
+    Fill: =RGBA(0, 120, 212, 1)
+    Color: =White
+    BorderRadius: =6
+    FontWeight: =FontWeight.Bold
+    OnSelect: =UpdateContext({ShowForm: true, SelectedRequest: Blank(), FormMode: FormMode.New})
+
+  SearchInput:
+    Type: TextInput
+    X: =205
+    Y: =238
+    Width: =300
+    Height: =38
+    PlaceholderText: ="Search by ref, department, cost center..."
+    BorderRadius: =6
+
+  StatusFilterDropdown:
+    Type: Dropdown
+    X: =520
+    Y: =238
+    Width: =160
+    Height: =38
+    Items: =["All Status", "Pending", "Approved", "Rejected"]
+    Default: ="All Status"
+
+  ##──────────────────────────────────────────
+  ## REQUESTS LIST TABLE
+  ##──────────────────────────────────────────
+  ListHeaderRect:
+    Type: Rectangle
+    X: =20
+    Y: =292
+    Width: =Parent.Width - 40
+    Height: =36
+    Fill: =RGBA(0, 70, 127, 1)
+    BorderRadius: =6
+
+  LHRef:
+    Type: Label
+    X: =30
+    Y: =298
+    Width: =100
+    Height: =24
+    Text: ="Ref #"
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    Size: =13
+
+  LHDate:
+    Type: Label
+    X: =135
+    Y: =298
+    Width: =110
+    Height: =24
+    Text: ="Date"
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    Size: =13
+
+  LHFromDept:
+    Type: Label
+    X: =250
+    Y: =298
+    Width: =150
+    Height: =24
+    Text: ="From Dept"
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    Size: =13
+
+  LHFromCC:
+    Type: Label
+    X: =405
+    Y: =298
+    Width: =130
+    Height: =24
+    Text: ="From CC"
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    Size: =13
+
+  LHToDept:
+    Type: Label
+    X: =540
+    Y: =298
+    Width: =150
+    Height: =24
+    Text: ="To Dept"
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    Size: =13
+
+  LHToCC:
+    Type: Label
+    X: =695
+    Y: =298
+    Width: =130
+    Height: =24
+    Text: ="To CC"
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    Size: =13
+
+  LHAmount:
+    Type: Label
+    X: =830
+    Y: =298
+    Width: =110
+    Height: =24
+    Text: ="Amount"
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    Size: =13
+    Align: =Align.Right
+
+  LHStatus:
+    Type: Label
+    X: =945
+    Y: =298
+    Width: =100
+    Height: =24
+    Text: ="Status"
+    Color: =White
+    FontWeight: =FontWeight.Bold
+    Size: =13
+    Align: =Align.Center
+
+  TransferGallery:
+    Type: Gallery
+    Layout: =Layout.Vertical
+    X: =20
+    Y: =328
+    Width: =Parent.Width - 40
+    Height: =Parent.Height - 410
+    Items: =Filter(
+              TransferRequests,
+              (StatusFilterDropdown.Selected.Value = "All Status" || Status = StatusFilterDropdown.Selected.Value),
+              (SearchInput.Text = "" ||
+               StartsWith(Text(RequestRef), SearchInput.Text) ||
+               StartsWith(FromDepartment, SearchInput.Text) ||
+               StartsWith(ToDepartment, SearchInput.Text))
+            )
+    TemplatePadding: =0
+    TemplateSize: =52
+
+    RowBg:
+      Type: Rectangle
+      Width: =Parent.Width
+      Height: =50
+      Fill: =If(Mod(ThisItem.Index, 2) = 0, RGBA(245, 248, 255, 1), White)
+
+    RowRef:
+      Type: Label
+      X: =10
+      Y: =14
+      Width: =100
+      Height: =24
+      Text: =ThisItem.RequestRef
+      Size: =13
+      Color: =RGBA(0, 70, 127, 1)
+      FontWeight: =FontWeight.Semibold
+
+    RowDate:
+      Type: Label
+      X: =115
+      Y: =14
+      Width: =110
+      Height: =24
+      Text: =Text(ThisItem.RequestDate, "dd/mm/yyyy")
+      Size: =13
+
+    RowFromDept:
+      Type: Label
+      X: =230
+      Y: =14
+      Width: =150
+      Height: =24
+      Text: =ThisItem.FromDepartment
+      Size: =13
+
+    RowFromCC:
+      Type: Label
+      X: =385
+      Y: =14
+      Width: =130
+      Height: =24
+      Text: =ThisItem.FromCostCenter
+      Size: =13
+
+    RowToDept:
+      Type: Label
+      X: =520
+      Y: =14
+      Width: =150
+      Height: =24
+      Text: =ThisItem.ToDepartment
+      Size: =13
+
+    RowToCC:
+      Type: Label
+      X: =675
+      Y: =14
+      Width: =130
+      Height: =24
+      Text: =ThisItem.ToCostCenter
+      Size: =13
+
+    RowAmount:
+      Type: Label
+      X: =810
+      Y: =14
+      Width: =110
+      Height: =24
+      Text: =Text(ThisItem.TransferAmount, "$#,##0")
+      Size: =13
+      Align: =Align.Right
+
+    RowStatus:
+      Type: Label
+      X: =925
+      Y: =12
+      Width: =90
+      Height: =26
+      BorderRadius: =13
+      Text: =ThisItem.Status
+      Color: =White
+      FontWeight: =FontWeight.Bold
+      Size: =11
+      Align: =Align.Center
+      Fill: =Switch(
+               ThisItem.Status,
+               "Approved", RGBA(16, 124, 16, 1),
+               "Rejected", RGBA(196, 43, 28, 1),
+               RGBA(255, 140, 0, 1)
+             )
+
+    RowViewBtn:
+      Type: Icon
+      Icon: =Icon.DetailList
+      X: =Parent.Width - 40
+      Y: =14
+      Width: =24
+      Height: =24
+      Color: =RGBA(0, 120, 212, 1)
+      OnSelect: =UpdateContext({ShowForm: true, SelectedRequest: ThisItem, FormMode: FormMode.View})
+
+    RowDivider:
+      Type: Rectangle
+      Y: =50
+      Width: =Parent.Width
+      Height: =1
+      Fill: =RGBA(220, 225, 235, 1)
+
+  ##──────────────────────────────────────────
+  ## NEW / EDIT REQUEST FORM  (overlay panel)
+  ## Visible only when ShowForm = true
+  ##──────────────────────────────────────────
+  FormOverlayDim:
+    Type: Rectangle
+    X: =0
+    Y: =0
+    Width: =Parent.Width
+    Height: =Parent.Height
+    Fill: =RGBA(0, 0, 0, 0.45)
+    Visible: =ShowForm
+
+  FormPanel:
+    Type: Rectangle
+    X: =(Parent.Width - 620) / 2
+    Y: =80
+    Width: =620
+    Height: =620
+    Fill: =White
+    BorderRadius: =14
+    DropShadow: =DropShadow.Heavy
+    Visible: =ShowForm
+
+  FormTitle:
+    Type: Label
+    X: =(Parent.Width - 600) / 2
+    Y: =100
+    Width: =560
+    Height: =35
+    Text: =If(IsBlank(SelectedRequest), "New Budget Transfer Request", "Transfer Request – " & SelectedRequest.RequestRef)
+    Size: =18
+    FontWeight: =FontWeight.Bold
+    Color: =RGBA(0, 70, 127, 1)
+    Visible: =ShowForm
+
+  FormCloseBtn:
+    Type: Button
+    X: =(Parent.Width + 560) / 2 - 30
+    Y: =100
+    Width: =30
+    Height: =30
+    Text: ="✕"
+    Fill: =RGBA(230, 235, 245, 1)
+    Color: =RGBA(50, 50, 80, 1)
+    BorderRadius: =15
+    Visible: =ShowForm
+    OnSelect: =UpdateContext({ShowForm: false})
+
+  # From Department
+  FormFromDeptLabel:
+    Type: Label
+    X: =(Parent.Width - 600) / 2
+    Y: =152
+    Width: =280
+    Height: =22
+    Text: ="From Department *"
+    Size: =13
+    FontWeight: =FontWeight.Semibold
+    Color: =RGBA(50, 50, 80, 1)
+    Visible: =ShowForm
+
+  FormFromDeptInput:
+    Type: Dropdown
+    X: =(Parent.Width - 600) / 2
+    Y: =174
+    Width: =280
+    Height: =38
+    Items: =Distinct(BudgetData, Department)
+    Visible: =ShowForm
+
+  # From Cost Center
+  FormFromCCLabel:
+    Type: Label
+    X: =(Parent.Width - 600) / 2 + 300
+    Y: =152
+    Width: =280
+    Height: =22
+    Text: ="From Cost Center *"
+    Size: =13
+    FontWeight: =FontWeight.Semibold
+    Color: =RGBA(50, 50, 80, 1)
+    Visible: =ShowForm
+
+  FormFromCCInput:
+    Type: Dropdown
+    X: =(Parent.Width - 600) / 2 + 300
+    Y: =174
+    Width: =280
+    Height: =38
+    Items: =Filter(BudgetData, Department = FormFromDeptInput.Selected.Value).CostCenter
+    Visible: =ShowForm
+
+  # To Department
+  FormToDeptLabel:
+    Type: Label
+    X: =(Parent.Width - 600) / 2
+    Y: =228
+    Width: =280
+    Height: =22
+    Text: ="To Department *"
+    Size: =13
+    FontWeight: =FontWeight.Semibold
+    Color: =RGBA(50, 50, 80, 1)
+    Visible: =ShowForm
+
+  FormToDeptInput:
+    Type: Dropdown
+    X: =(Parent.Width - 600) / 2
+    Y: =250
+    Width: =280
+    Height: =38
+    Items: =Distinct(BudgetData, Department)
+    Visible: =ShowForm
+
+  # To Cost Center
+  FormToCCLabel:
+    Type: Label
+    X: =(Parent.Width - 600) / 2 + 300
+    Y: =228
+    Width: =280
+    Height: =22
+    Text: ="To Cost Center *"
+    Size: =13
+    FontWeight: =FontWeight.Semibold
+    Color: =RGBA(50, 50, 80, 1)
+    Visible: =ShowForm
+
+  FormToCCInput:
+    Type: Dropdown
+    X: =(Parent.Width - 600) / 2 + 300
+    Y: =250
+    Width: =280
+    Height: =38
+    Items: =Filter(BudgetData, Department = FormToDeptInput.Selected.Value).CostCenter
+    Visible: =ShowForm
+
+  # Transfer Amount
+  FormAmountLabel:
+    Type: Label
+    X: =(Parent.Width - 600) / 2
+    Y: =304
+    Width: =280
+    Height: =22
+    Text: ="Transfer Amount (USD) *"
+    Size: =13
+    FontWeight: =FontWeight.Semibold
+    Color: =RGBA(50, 50, 80, 1)
+    Visible: =ShowForm
+
+  FormAmountInput:
+    Type: TextInput
+    X: =(Parent.Width - 600) / 2
+    Y: =326
+    Width: =280
+    Height: =38
+    PlaceholderText: ="e.g. 50000"
+    Format: =TextFormat.Number
+    Visible: =ShowForm
+
+  # Available Balance indicator
+  AvailableBalanceLabel:
+    Type: Label
+    X: =(Parent.Width - 600) / 2 + 300
+    Y: =304
+    Width: =280
+    Height: =22
+    Text: ="Available Balance"
+    Size: =13
+    FontWeight: =FontWeight.Semibold
+    Color: =RGBA(50, 50, 80, 1)
+    Visible: =ShowForm
+
+  AvailableBalanceValue:
+    Type: Label
+    X: =(Parent.Width - 600) / 2 + 300
+    Y: =326
+    Width: =280
+    Height: =38
+    Text: =Text(
+              With(
+                {row: LookUp(FilteredBudget, Department = FormFromDeptInput.Selected.Value && CostCenter = FormFromCCInput.Selected.Value)},
+                row.BudgetAmount - row.ActualAmount
+              ),
+              "$#,##0"
+            )
+    Size: =18
+    FontWeight: =FontWeight.Bold
+    Color: =RGBA(16, 124, 16, 1)
+    Visible: =ShowForm
+
+  # Justification
+  FormJustLabel:
+    Type: Label
+    X: =(Parent.Width - 600) / 2
+    Y: =380
+    Width: =580
+    Height: =22
+    Text: ="Justification / Business Reason *"
+    Size: =13
+    FontWeight: =FontWeight.Semibold
+    Color: =RGBA(50, 50, 80, 1)
+    Visible: =ShowForm
+
+  FormJustInput:
+    Type: TextInput
+    X: =(Parent.Width - 600) / 2
+    Y: =402
+    Width: =580
+    Height: =90
+    PlaceholderText: ="Describe why this budget transfer is required..."
+    Mode: =TextMode.MultiLine
+    Visible: =ShowForm
+
+  # Priority
+  FormPriorityLabel:
+    Type: Label
+    X: =(Parent.Width - 600) / 2
+    Y: =504
+    Width: =180
+    Height: =22
+    Text: ="Priority"
+    Size: =13
+    FontWeight: =FontWeight.Semibold
+    Color: =RGBA(50, 50, 80, 1)
+    Visible: =ShowForm
+
+  FormPriorityDropdown:
+    Type: Dropdown
+    X: =(Parent.Width - 600) / 2
+    Y: =526
+    Width: =180
+    Height: =38
+    Items: =["Normal", "Urgent", "Critical"]
+    Default: ="Normal"
+    Visible: =ShowForm
+
+  # Submit Button
+  FormSubmitBtn:
+    Type: Button
+    X: =(Parent.Width - 600) / 2 + 340
+    Y: =626
+    Width: =240
+    Height: =44
+    Text: ="Submit Request"
+    Fill: =RGBA(0, 120, 212, 1)
+    Color: =White
+    BorderRadius: =8
+    FontWeight: =FontWeight.Bold
+    Visible: =ShowForm
+    OnSelect: |
+      =If(
+        IsBlank(FormFromDeptInput.Selected.Value) || IsBlank(FormToDeptInput.Selected.Value) || IsBlank(FormAmountInput.Text) || IsBlank(FormJustInput.Text),
+        Notify("Please fill in all required fields (*)", NotificationType.Warning),
+        Collect(
+          TransferRequests,
+          {
+            RequestRef: "TR-" & Text(Now(), "yyyymmdd") & "-" & Text(CountRows(TransferRequests) + 1, "000"),
+            RequestDate: Now(),
+            RequestedBy: User().FullName,
+            RequestedByEmail: User().Email,
+            FromDepartment: FormFromDeptInput.Selected.Value,
+            FromCostCenter: FormFromCCInput.Selected.Value,
+            ToDepartment: FormToDeptInput.Selected.Value,
+            ToCostCenter: FormToCCInput.Selected.Value,
+            TransferAmount: Value(FormAmountInput.Text),
+            Justification: FormJustInput.Text,
+            Priority: FormPriorityDropdown.Selected.Value,
+            Status: "Pending",
+            SubmittedDate: Now()
+          }
+        );
+        UpdateContext({ShowForm: false});
+        Notify("Transfer request submitted successfully!", NotificationType.Success)
+        /* When Power Automate is connected, add:
+           TransferApprovalFlow.Run(Last(TransferRequests).RequestRef) */
+      )
+
+  FormCancelBtn:
+    Type: Button
+    X: =(Parent.Width - 600) / 2
+    Y: =626
+    Width: =150
+    Height: =44
+    Text: ="Cancel"
+    Fill: =RGBA(230, 235, 245, 1)
+    Color: =RGBA(50, 50, 80, 1)
+    BorderRadius: =8
+    Visible: =ShowForm
+    OnSelect: =UpdateContext({ShowForm: false})
+
+  ##──────────────────────────────────────────
+  ## FOOTER
+  ##──────────────────────────────────────────
+  FooterRect:
+    Type: Rectangle
+    X: =0
+    Y: =Parent.Height - 35
+    Width: =Parent.Width
+    Height: =35
+    Fill: =RGBA(0, 70, 127, 1)
+
+  FooterLabel:
+    Type: Label
+    X: =20
+    Y: =Parent.Height - 30
+    Width: =Parent.Width - 40
+    Height: =25
+    Text: ="Budget Performance Portal  |  Data source: Local (connect Excel / Oracle EPS via Power Automate)"
+    Color: =RGBA(200, 220, 255, 1)
+    Size: =11
