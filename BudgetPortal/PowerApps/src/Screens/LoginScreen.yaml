@@ -1,0 +1,150 @@
+##
+## Screen: LoginScreen
+## Mirrors the login screen from the HTML portal
+## Department-based access selector
+##
+
+LoginScreen:
+  Type: Screen
+  Fill: =RGBA(245, 242, 236, 1)   # --sf sand/cream background
+
+  LoginCard:
+    Type: Rectangle
+    X: =(Parent.Width - 440) / 2
+    Y: =(Parent.Height - 520) / 2
+    Width: =440
+    Height: =520
+    Fill: =White
+    BorderRadius: =20
+    DropShadow: =DropShadow.Regular
+    BorderColor: =RGBA(228, 221, 210, 1)
+    BorderThickness: =1
+
+  LogoBox:
+    Type: Rectangle
+    X: =(Parent.Width - 52) / 2
+    Y: =(Parent.Height - 520) / 2 + 36
+    Width: =52
+    Height: =52
+    Fill: =RGBA(44, 36, 32, 1)    # --navy
+    BorderRadius: =12
+
+  LogoLabel:
+    Type: Label
+    X: =(Parent.Width - 52) / 2
+    Y: =(Parent.Height - 520) / 2 + 44
+    Width: =52
+    Height: =36
+    Text: ="◈"
+    Color: =RGBA(164, 127, 96, 1)
+    Align: =Align.Center
+    Size: =22
+
+  SecureBadge:
+    Type: Label
+    X: =(Parent.Width - 280) / 2
+    Y: =(Parent.Height - 520) / 2 + 100
+    Width: =280
+    Height: =28
+    Text: ="🔒  Secure Department Access"
+    Fill: =RGBA(240, 234, 224, 1)
+    Color: =RGBA(164, 127, 96, 1)
+    BorderRadius: =14
+    Align: =Align.Center
+    Size: =12
+    FontWeight: =FontWeight.Semibold
+
+  TitleLabel:
+    Type: Label
+    X: =(Parent.Width - 400) / 2
+    Y: =(Parent.Height - 520) / 2 + 140
+    Width: =400
+    Height: =32
+    Text: ="Budget Inquiry Portal"
+    Align: =Align.Center
+    Size: =20
+    FontWeight: =FontWeight.Semibold
+    Color: =RGBA(44, 36, 32, 1)
+
+  SubtitleLabel:
+    Type: Label
+    X: =(Parent.Width - 400) / 2
+    Y: =(Parent.Height - 520) / 2 + 172
+    Width: =400
+    Height: =36
+    Text: ="National Projects Office — FY2026" & Char(13) & "Select your department to access your budget"
+    Align: =Align.Center
+    Size: =13
+    Color: =RGBA(122, 110, 101, 1)
+
+  DeptLabel:
+    Type: Label
+    X: =(Parent.Width - 380) / 2
+    Y: =(Parent.Height - 520) / 2 + 222
+    Width: =380
+    Height: =20
+    Text: ="YOUR DEPARTMENT"
+    Size: =11
+    FontWeight: =FontWeight.Bold
+    Color: =RGBA(122, 110, 101, 1)
+
+  DeptDropdown:
+    Type: Dropdown
+    X: =(Parent.Width - 380) / 2
+    Y: =(Parent.Height - 520) / 2 + 242
+    Width: =380
+    Height: =44
+    Items: =[
+              "NPO — Full Organization View",
+              "── CORPORATE ──",
+              "All Corporate Departments",
+              "Enablement (Corp)",
+              "Financial Affairs",
+              "Human Resources",
+              "Information Technology",
+              "Legal Affairs",
+              "Logistics & General Services",
+              "Organization Development",
+              "Strategic Initiatives (Corp)",
+              "── PROJECTS ──",
+              "All Projects",
+              "Activation",
+              "Creative",
+              "Enablement (Proj)",
+              "Strategic Initiatives (Proj)"
+            ]
+    BorderColor: =RGBA(228, 221, 210, 1)
+    BorderRadius: =10
+
+  AccessButton:
+    Type: Button
+    X: =(Parent.Width - 380) / 2
+    Y: =(Parent.Height - 520) / 2 + 308
+    Width: =380
+    Height: =48
+    Text: ="Access Budget Portal  →"
+    Fill: =RGBA(44, 36, 32, 1)
+    Color: =White
+    BorderRadius: =10
+    FontWeight: =FontWeight.Bold
+    Size: =14
+    OnSelect: |
+      =If(
+        StartsWith(DeptDropdown.Selected.Value, "──"),
+        Notify("Please select a department, not a section header.", NotificationType.Warning),
+        Set(SelectedView, DeptDropdown.Selected.Value);
+        Set(CurrentView, "portal");
+        Navigate(DashboardScreen, ScreenTransition.Fade)
+      )
+
+  ErrorLabel:
+    Type: Label
+    X: =(Parent.Width - 380) / 2
+    Y: =(Parent.Height - 520) / 2 + 362
+    Width: =380
+    Height: =24
+    Text: ="Please select your department to continue."
+    Align: =Align.Center
+    Color: =RGBA(163, 45, 45, 1)
+    Size: =12
+    Visible: =false

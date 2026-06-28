@@ -1,0 +1,1421 @@
+##
+## Screen: DashboardScreen
+## Main portal — replaces all 8 pages of the HTML app:
+##   npo-overview, corp-all-ov, corp-all-depts, proj-all-ov,
+##   proj-all-depts, corp-ov, accounts, proj-ov, projects, transfer
+##
+## Uses context variables:
+##   SelectedView  – which dept/scope the user logged in as
+##   ActivePage    – which inner page is currently showing
+##   SelectedDept  – dept currently drilled into
+##   SelectedItem  – account or project clicked for detail panel
+##
+
+DashboardScreen:
+  Fill: =RGBA(245, 242, 236, 1)
+
+  OnVisible: |
+    =/* Set the starting page based on login selection */
+    Switch(
+      SelectedView,
+      "NPO — Full Organization View",      UpdateContext({ActivePage:"npo",      SelectedDept:"",  ViewType:"npo"}),
+      "All Corporate Departments",          UpdateContext({ActivePage:"corp-all",  SelectedDept:"",  ViewType:"corp"}),
+      "All Projects",                       UpdateContext({ActivePage:"proj-all",  SelectedDept:"",  ViewType:"proj"}),
+      "── CORPORATE ──",                   UpdateContext({ActivePage:"corp-all",  SelectedDept:"",  ViewType:"corp"}),
+      /* single corp dept */
+      StartsWith(SelectedView,"Enablement (Corp)"),          UpdateContext({ActivePage:"corp-dept", SelectedDept:"Enablement",              ViewType:"corp"}),
+      UpdateContext({ActivePage:"corp-dept", SelectedDept:SelectedView, ViewType:"corp"})
+    );
+    /* Simplification: map remaining project depts */
+    If(SelectedView = "Activation",                UpdateContext({ActivePage:"proj-dept", SelectedDept:"Activation",          ViewType:"proj"}));
+    If(SelectedView = "Creative",                  UpdateContext({ActivePage:"proj-dept", SelectedDept:"Creative",            ViewType:"proj"}));
+    If(SelectedView = "Enablement (Proj)",         UpdateContext({ActivePage:"proj-dept", SelectedDept:"Enablement",          ViewType:"proj"}));
+    If(SelectedView = "Strategic Initiatives (Proj)", UpdateContext({ActivePage:"proj-dept", SelectedDept:"Strategic Initiatives", ViewType:"proj"}));
+    If(SelectedView = "Strategic Initiatives (Corp)", UpdateContext({ActivePage:"corp-dept", SelectedDept:"Strategic Initiatives", ViewType:"corp"}));
+    If(SelectedView = "Financial Affairs",         UpdateContext({ActivePage:"corp-dept", SelectedDept:"Financial Affairs",   ViewType:"corp"}));
+    If(SelectedView = "Human Resources",           UpdateContext({ActivePage:"corp-dept", SelectedDept:"Human Resources",     ViewType:"corp"}));
+    If(SelectedView = "Information Technology",    UpdateContext({ActivePage:"corp-dept", SelectedDept:"Information Technology", ViewType:"corp"}));
+    If(SelectedView = "Legal Affairs",             UpdateContext({ActivePage:"corp-dept", SelectedDept:"Legal Affairs",       ViewType:"corp"}));
+    If(SelectedView = "Logistics & General Services", UpdateContext({ActivePage:"corp-dept", SelectedDept:"Logistics & General Services", ViewType:"corp"}));
+    If(SelectedView = "Organization Development",  UpdateContext({ActivePage:"corp-dept", SelectedDept:"Organization Development", ViewType:"corp"}));
+    UpdateContext({SelectedItem: Blank()})
+
+  ##──────────────────────────────────────────
+  ## TOP BAR
+  ##──────────────────────────────────────────
+  TopBar:
+    Type: Rectangle
+    X: =0
+    Y: =0
+    Width: =Parent.Width
+    Height: =60
+    Fill: =RGBA(44, 36, 32, 1)    # --navy espresso
+
+  TopLogoBox:
+    Type: Rectangle
+    X: =16
+    Y: =13
+    Width: =34
+    Height: =34
+    Fill: =RGBA(164, 127, 96, 1)
+    BorderRadius: =8
+
+  TopLogoLabel:
+    Type: Label
+    X: =16
+    Y: =13
+    Width: =34
+    Height: =34
+    Text: ="◈"
+    Color: =White
+    Align: =Align.Center
+    Size: =16
+
+  OrgLabel:
+    Type: Label
+    X: =60
+    Y: =12
+    Width: =300
+    Height: =18
+    Text: ="NATIONAL PROJECTS OFFICE"
+    Color: =RGBA(255,255,255,0.5)
+    Size: =10
+    FontWeight: =FontWeight.Bold
+
+  PortalTitleLabel:
+    Type: Label
+    X: =60
+    Y: =30
+    Width: =300
+    Height: =22
+    Text: ="Budget Inquiry Portal"
+    Color: =White
+    Size: =14
+    FontWeight: =FontWeight.Semibold
+
+  PeriodLabel:
+    Type: Label
+    X: =Parent.Width - 360
+    Y: =22
+    Width: =80
+    Height: =20
+    Text: ="May 2026"
+    Color: =RGBA(255,255,255,0.4)
+    Size: =11
+
+  DeptPill:
+    Type: Label
+    X: =Parent.Width - 270
+    Y: =18
+    Width: =180
+    Height: =26
+    Text: =If(SelectedDept = "", SelectedView, SelectedDept)
+    Fill: =RGBA(164,127,96,0.18)
+    Color: =RGBA(201, 177, 155, 1)
+    BorderRadius: =20
+    Align: =Align.Center
+    Size: =12
+    FontWeight: =FontWeight.Medium
+
+  SwitchButton:
+    Type: Button
+    X: =Parent.Width - 80
+    Y: =18
+    Width: =64
+    Height: =26
+    Text: ="← Switch"
+    Fill: =RGBA(255,255,255,0.08)
+    Color: =RGBA(255,255,255,0.7)
+    BorderRadius: =6
+    BorderColor: =RGBA(255,255,255,0.15)
+    Size: =12
+    OnSelect: =Navigate(LoginScreen, ScreenTransition.Fade)
+
+  ##──────────────────────────────────────────
+  ## LEFT SIDEBAR
+  ##──────────────────────────────────────────
+  SidebarRect:
+    Type: Rectangle
+    X: =0
+    Y: =60
+    Width: =220
+    Height: =Parent.Height - 60
+    Fill: =White
+    BorderColor: =RGBA(228, 221, 210, 1)
+    BorderThickness: =1
+
+  ## Navigation items – shown/hidden based on ViewType
+  NavOrgLabel:
+    Type: Label
+    X: =8
+    Y: =74
+    Width: =204
+    Height: =20
+    Text: ="ORGANISATION"
+    Color: =RGBA(168, 156, 142, 1)
+    Size: =10
+    FontWeight: =FontWeight.Bold
+    Visible: =ViewType = "npo"
+
+  NavNPOBtn:
+    Type: Button
+    X: =8
+    Y: =92
+    Width: =204
+    Height: =36
+    Text: ="⊞  Full NPO View"
+    Fill: =If(ActivePage = "npo", RGBA(44,36,32,1), Transparent())
+    Color: =If(ActivePage = "npo", White, RGBA(122,110,101,1))
+    BorderRadius: =6
+    FontWeight: =If(ActivePage = "npo", FontWeight.Semibold, FontWeight.Normal)
+    Size: =13
+    Align: =Align.Left
+    Visible: =ViewType = "npo"
+    OnSelect: =UpdateContext({ActivePage:"npo", SelectedItem:Blank()})
+
+  NavCorpAllLabel:
+    Type: Label
+    X: =8
+    Y: =74
+    Width: =204
+    Height: =20
+    Text: ="CORPORATE — ALL"
+    Color: =RGBA(168, 156, 142, 1)
+    Size: =10
+    FontWeight: =FontWeight.Bold
+    Visible: =ViewType = "corp" && SelectedDept = ""
+
+  NavCorpAllOvBtn:
+    Type: Button
+    X: =8
+    Y: =92
+    Width: =204
+    Height: =36
+    Text: ="⊞  Overview"
+    Fill: =If(ActivePage = "corp-all", RGBA(44,36,32,1), Transparent())
+    Color: =If(ActivePage = "corp-all", White, RGBA(122,110,101,1))
+    BorderRadius: =6
+    Size: =13
+    Align: =Align.Left
+    Visible: =ViewType = "corp" && SelectedDept = ""
+    OnSelect: =UpdateContext({ActivePage:"corp-all", SelectedItem:Blank()})
+
+  NavCorpAllDeptsBtn:
+    Type: Button
+    X: =8
+    Y: =132
+    Width: =204
+    Height: =36
+    Text: ="👥  By Department"
+    Fill: =If(ActivePage = "corp-depts", RGBA(44,36,32,1), Transparent())
+    Color: =If(ActivePage = "corp-depts", White, RGBA(122,110,101,1))
+    BorderRadius: =6
+    Size: =13
+    Align: =Align.Left
+    Visible: =ViewType = "corp" && SelectedDept = ""
+    OnSelect: =UpdateContext({ActivePage:"corp-depts", SelectedItem:Blank()})
+
+  NavCorpDeptLabel:
+    Type: Label
+    X: =8
+    Y: =74
+    Width: =204
+    Height: =20
+    Text: ="CORPORATE BUDGET"
+    Color: =RGBA(168, 156, 142, 1)
+    Size: =10
+    FontWeight: =FontWeight.Bold
+    Visible: =ViewType = "corp" && SelectedDept <> ""
+
+  NavCorpOvBtn:
+    Type: Button
+    X: =8
+    Y: =92
+    Width: =204
+    Height: =36
+    Text: ="⊞  Overview"
+    Fill: =If(ActivePage = "corp-dept", RGBA(44,36,32,1), Transparent())
+    Color: =If(ActivePage = "corp-dept", White, RGBA(122,110,101,1))
+    BorderRadius: =6
+    Size: =13
+    Align: =Align.Left
+    Visible: =ViewType = "corp" && SelectedDept <> ""
+    OnSelect: =UpdateContext({ActivePage:"corp-dept", SelectedItem:Blank()})
+
+  NavAccountsBtn:
+    Type: Button
+    X: =8
+    Y: =132
+    Width: =204
+    Height: =36
+    Text: ="≡  Accounts"
+    Fill: =If(ActivePage = "accounts", RGBA(44,36,32,1), Transparent())
+    Color: =If(ActivePage = "accounts", White, RGBA(122,110,101,1))
+    BorderRadius: =6
+    Size: =13
+    Align: =Align.Left
+    Visible: =ViewType = "corp" && SelectedDept <> ""
+    OnSelect: =UpdateContext({ActivePage:"accounts", SelectedItem:Blank()})
+
+  NavProjAllLabel:
+    Type: Label
+    X: =8
+    Y: =74
+    Width: =204
+    Height: =20
+    Text: ="PROJECTS — ALL"
+    Color: =RGBA(168, 156, 142, 1)
+    Size: =10
+    FontWeight: =FontWeight.Bold
+    Visible: =ViewType = "proj" && SelectedDept = ""
+
+  NavProjAllOvBtn:
+    Type: Button
+    X: =8
+    Y: =92
+    Width: =204
+    Height: =36
+    Text: ="⊞  Overview"
+    Fill: =If(ActivePage = "proj-all", RGBA(44,36,32,1), Transparent())
+    Color: =If(ActivePage = "proj-all", White, RGBA(122,110,101,1))
+    BorderRadius: =6
+    Size: =13
+    Align: =Align.Left
+    Visible: =ViewType = "proj" && SelectedDept = ""
+    OnSelect: =UpdateContext({ActivePage:"proj-all", SelectedItem:Blank()})
+
+  NavProjAllDeptsBtn:
+    Type: Button
+    X: =8
+    Y: =132
+    Width: =204
+    Height: =36
+    Text: ="★  By Department"
+    Fill: =If(ActivePage = "proj-depts", RGBA(44,36,32,1), Transparent())
+    Color: =If(ActivePage = "proj-depts", White, RGBA(122,110,101,1))
+    BorderRadius: =6
+    Size: =13
+    Align: =Align.Left
+    Visible: =ViewType = "proj" && SelectedDept = ""
+    OnSelect: =UpdateContext({ActivePage:"proj-depts", SelectedItem:Blank()})
+
+  NavProjDeptLabel:
+    Type: Label
+    X: =8
+    Y: =74
+    Width: =204
+    Height: =20
+    Text: ="PROJECT BUDGET"
+    Color: =RGBA(168, 156, 142, 1)
+    Size: =10
+    FontWeight: =FontWeight.Bold
+    Visible: =ViewType = "proj" && SelectedDept <> ""
+
+  NavProjOvBtn:
+    Type: Button
+    X: =8
+    Y: =92
+    Width: =204
+    Height: =36
+    Text: ="⊞  Overview"
+    Fill: =If(ActivePage = "proj-dept", RGBA(44,36,32,1), Transparent())
+    Color: =If(ActivePage = "proj-dept", White, RGBA(122,110,101,1))
+    BorderRadius: =6
+    Size: =13
+    Align: =Align.Left
+    Visible: =ViewType = "proj" && SelectedDept <> ""
+    OnSelect: =UpdateContext({ActivePage:"proj-dept", SelectedItem:Blank()})
+
+  NavProjectsBtn:
+    Type: Button
+    X: =8
+    Y: =132
+    Width: =204
+    Height: =36
+    Text: ="★  Projects"
+    Fill: =If(ActivePage = "projects", RGBA(44,36,32,1), Transparent())
+    Color: =If(ActivePage = "projects", White, RGBA(122,110,101,1))
+    BorderRadius: =6
+    Size: =13
+    Align: =Align.Left
+    Visible: =ViewType = "proj" && SelectedDept <> ""
+    OnSelect: =UpdateContext({ActivePage:"projects", SelectedItem:Blank()})
+
+  SidebarDivider:
+    Type: Rectangle
+    X: =8
+    Y: =178
+    Width: =204
+    Height: =1
+    Fill: =RGBA(228, 221, 210, 1)
+
+  NavActionsLabel:
+    Type: Label
+    X: =8
+    Y: =188
+    Width: =204
+    Height: =20
+    Text: ="ACTIONS"
+    Color: =RGBA(168, 156, 142, 1)
+    Size: =10
+    FontWeight: =FontWeight.Bold
+
+  NavTransferBtn:
+    Type: Button
+    X: =8
+    Y: =206
+    Width: =204
+    Height: =36
+    Text: ="⇄  Budget Transfer"
+    Fill: =If(ActivePage = "transfer", RGBA(44,36,32,1), Transparent())
+    Color: =If(ActivePage = "transfer", White, RGBA(122,110,101,1))
+    BorderRadius: =6
+    Size: =13
+    Align: =Align.Left
+    OnSelect: =UpdateContext({ActivePage:"transfer", SelectedItem:Blank()})
+
+  ##──────────────────────────────────────────
+  ## MAIN CONTENT AREA
+  ## All pages share this container, switching by ActivePage
+  ##──────────────────────────────────────────
+
+  ##══ PAGE HEADER ══════════════════════════
+  PageEyebrow:
+    Type: Label
+    X: =248
+    Y: =76
+    Width: =Parent.Width - 280
+    Height: =18
+    Text: =Switch(ActivePage,
+             "npo",        "National Projects Office",
+             "corp-all",   "Corporate Budget",
+             "corp-depts", "Corporate Budget",
+             "corp-dept",  "Corporate Budget",
+             "accounts",   "Corporate Budget",
+             "proj-all",   "Project Budget",
+             "proj-depts", "Project Budget",
+             "proj-dept",  "Project Budget",
+             "projects",   "Project Budget",
+             "transfer",   "Actions",
+             ""
+           )
+    Color: =RGBA(168, 156, 142, 1)
+    Size: =10
+    FontWeight: =FontWeight.Bold
+
+  PageTitle:
+    Type: Label
+    X: =248
+    Y: =94
+    Width: =Parent.Width - 280
+    Height: =30
+    Text: =Switch(ActivePage,
+             "npo",        "Full Organization Budget",
+             "corp-all",   "All Departments Overview",
+             "corp-depts", "Select Department",
+             "corp-dept",  SelectedDept,
+             "accounts",   SelectedDept & " — Accounts",
+             "proj-all",   "All Projects Overview",
+             "proj-depts", "Select Department",
+             "proj-dept",  SelectedDept & " — Projects",
+             "projects",   SelectedDept & " — Projects",
+             "transfer",   "Budget Transfer Request",
+             ""
+           )
+    Size: =21
+    FontWeight: =FontWeight.Semibold
+    Color: =RGBA(44, 36, 32, 1)
+
+  PageSub:
+    Type: Label
+    X: =248
+    Y: =124
+    Width: =Parent.Width - 280
+    Height: =20
+    Text: =Switch(ActivePage,
+             "npo",        "FY2026 — Corporate + Projects combined · As of May 2026",
+             "corp-all",   "FY2026 — All corporate departments combined",
+             "corp-depts", "Choose a department to drill into its accounts",
+             "corp-dept",  "Cost Center " & LookUp(CorpDeptSummary, Dept=SelectedDept, CC) & " · FY2026",
+             "accounts",   With({r:LookUp(CorpDeptSummary,Dept=SelectedDept)}, Text(r.Accounts,"[$-en]0") & " accounts · CC " & r.CC),
+             "proj-all",   "FY2026 — All active projects combined",
+             "proj-depts", "Choose a department to drill into its projects",
+             "proj-dept",  Text(CountRows(Filter(ProjItems,Dept=SelectedDept)),"[$-en]0") & " active projects · FY2026",
+             "projects",   Text(CountRows(Filter(ProjItems,Dept=SelectedDept)),"[$-en]0") & " projects",
+             "transfer",   "Submit a request to transfer budget between accounts or projects",
+             ""
+           )
+    Size: =13
+    Color: =RGBA(122, 110, 101, 1)
+
+  ##══ KPI STRIP ════════════════════════════
+  ## 5 KPI cards: FY Budget | YTD Budget | Actual Spend | Encumbrances | Variance
+  ## Visible on overview pages
+
+  KPIContainer:
+    Type: GroupContainer
+    X: =228
+    Y: =152
+    Width: =Parent.Width - 248
+    Height: =80
+    Visible: =ActivePage <> "transfer" && ActivePage <> "corp-depts" && ActivePage <> "proj-depts" && ActivePage <> "accounts" && ActivePage <> "projects"
+
+    KPIfy:
+      Type: Label
+      X: =0
+      Y: =0
+      Width: =(Parent.Width - 40) / 5
+      Height: =78
+      # Inline box styling via border top trick is limited in Power Apps; use fill + top accent
+      Fill: =White
+      BorderRadius: =10
+      Text: |
+        ="FY BUDGET" & Char(13) &
+        Text(
+          Switch(ActivePage,
+            "npo",       Sum(CorpAccounts, FY) + Sum(ProjItems, FY),
+            "corp-all",  Sum(CorpAccounts, FY),
+            "corp-dept", Sum(Filter(CorpAccounts, Dept=SelectedDept), FY),
+            "proj-all",  Sum(ProjItems, FY),
+            "proj-dept", Sum(Filter(ProjItems, Dept=SelectedDept), FY),
+            0
+          ),
+          "[$-en-US]AED #,##0"
+        )
+      Align: =Align.Center
+      Size: =12
+
+    KPIytd:
+      Type: Label
+      X: =(Parent.Width - 40) / 5 + 10
+      Y: =0
+      Width: =(Parent.Width - 40) / 5
+      Height: =78
+      Fill: =White
+      BorderRadius: =10
+      Text: |
+        ="YTD BUDGET" & Char(13) &
+        Text(
+          Switch(ActivePage,
+            "npo",       Sum(CorpAccounts, YTD) + Sum(ProjItems, YTD),
+            "corp-all",  Sum(CorpAccounts, YTD),
+            "corp-dept", Sum(Filter(CorpAccounts, Dept=SelectedDept), YTD),
+            "proj-all",  Sum(ProjItems, YTD),
+            "proj-dept", Sum(Filter(ProjItems, Dept=SelectedDept), YTD),
+            0
+          ),
+          "[$-en-US]AED #,##0"
+        )
+      Align: =Align.Center
+      Size: =12
+
+    KPIact:
+      Type: Label
+      X: =2 * ((Parent.Width - 40) / 5 + 10)
+      Y: =0
+      Width: =(Parent.Width - 40) / 5
+      Height: =78
+      Fill: =White
+      BorderRadius: =10
+      Text: |
+        ="ACTUAL SPEND" & Char(13) &
+        Text(
+          Switch(ActivePage,
+            "npo",       Sum(CorpAccounts, Act) + Sum(ProjItems, Act),
+            "corp-all",  Sum(CorpAccounts, Act),
+            "corp-dept", Sum(Filter(CorpAccounts, Dept=SelectedDept), Act),
+            "proj-all",  Sum(ProjItems, Act),
+            "proj-dept", Sum(Filter(ProjItems, Dept=SelectedDept), Act),
+            0
+          ),
+          "[$-en-US]AED #,##0"
+        )
+      Align: =Align.Center
+      Size: =12
+
+    KPIenc:
+      Type: Label
+      X: =3 * ((Parent.Width - 40) / 5 + 10)
+      Y: =0
+      Width: =(Parent.Width - 40) / 5
+      Height: =78
+      Fill: =White
+      BorderRadius: =10
+      Text: |
+        ="ENCUMBRANCES" & Char(13) &
+        Text(
+          Switch(ActivePage,
+            "npo",       Sum(CorpAccounts, Enc) + Sum(ProjItems, Enc),
+            "corp-all",  Sum(CorpAccounts, Enc),
+            "corp-dept", Sum(Filter(CorpAccounts, Dept=SelectedDept), Enc),
+            "proj-all",  Sum(ProjItems, Enc),
+            "proj-dept", Sum(Filter(ProjItems, Dept=SelectedDept), Enc),
+            0
+          ),
+          "[$-en-US]AED #,##0"
+        )
+      Align: =Align.Center
+      Size: =12
+
+    KPIvar:
+      Type: Label
+      X: =4 * ((Parent.Width - 40) / 5 + 10)
+      Y: =0
+      Width: =(Parent.Width - 40) / 5
+      Height: =78
+      Fill: =White
+      BorderRadius: =10
+      Text: |
+        ="VARIANCE" & Char(13) &
+        Text(
+          With({
+            ytd: Switch(ActivePage,
+              "npo",       Sum(CorpAccounts, YTD) + Sum(ProjItems, YTD),
+              "corp-all",  Sum(CorpAccounts, YTD),
+              "corp-dept", Sum(Filter(CorpAccounts, Dept=SelectedDept), YTD),
+              "proj-all",  Sum(ProjItems, YTD),
+              "proj-dept", Sum(Filter(ProjItems, Dept=SelectedDept), YTD),
+              0),
+            act: Switch(ActivePage,
+              "npo",       Sum(CorpAccounts, Act) + Sum(ProjItems, Act),
+              "corp-all",  Sum(CorpAccounts, Act),
+              "corp-dept", Sum(Filter(CorpAccounts, Dept=SelectedDept), Act),
+              "proj-all",  Sum(ProjItems, Act),
+              "proj-dept", Sum(Filter(ProjItems, Dept=SelectedDept), Act),
+              0)
+          }, ytd - act),
+          "[$-en-US]AED #,##0"
+        )
+      Color: =With({
+               ytd: Switch(ActivePage,"npo",Sum(CorpAccounts,YTD)+Sum(ProjItems,YTD),"corp-all",Sum(CorpAccounts,YTD),"corp-dept",Sum(Filter(CorpAccounts,Dept=SelectedDept),YTD),"proj-all",Sum(ProjItems,YTD),"proj-dept",Sum(Filter(ProjItems,Dept=SelectedDept),YTD),0),
+               act: Switch(ActivePage,"npo",Sum(CorpAccounts,Act)+Sum(ProjItems,Act),"corp-all",Sum(CorpAccounts,Act),"corp-dept",Sum(Filter(CorpAccounts,Dept=SelectedDept),Act),"proj-all",Sum(ProjItems,Act),"proj-dept",Sum(Filter(ProjItems,Dept=SelectedDept),Act),0)
+             }, If(ytd - act >= 0, RGBA(59, 109, 17, 1), RGBA(163, 45, 45, 1)))
+      Align: =Align.Center
+      Size: =12
+
+  ##══ DEPARTMENT CARDS GRID (corp-depts / proj-depts pages) ════════
+  DeptCardsGallery:
+    Type: Gallery
+    Layout: =Layout.Flexible
+    Wrap: =true
+    X: =228
+    Y: =152
+    Width: =Parent.Width - 248
+    Height: =Parent.Height - 180
+    Visible: =ActivePage = "corp-depts" || ActivePage = "proj-depts"
+    Items: =If(ActivePage = "corp-depts", CorpDeptSummary, ProjDeptSummary)
+    TemplatePadding: =8
+    TemplateSize: =130
+    ShowScrollbar: =true
+
+    DeptCardRect:
+      Type: Rectangle
+      Width: =200
+      Height: =120
+      Fill: =White
+      BorderRadius: =10
+      BorderColor: =RGBA(228, 221, 210, 1)
+      BorderThickness: =1.5
+      DropShadow: =DropShadow.Light
+
+    DeptAccentBar:
+      Type: Rectangle
+      Width: =3
+      Height: =120
+      Fill: =If(ActivePage = "proj-depts", RGBA(193, 154, 107, 1), RGBA(164, 127, 96, 1))
+
+    DeptCardName:
+      Type: Label
+      X: =14
+      Y: =38
+      Width: =180
+      Height: =28
+      Text: =ThisItem.Dept
+      FontWeight: =FontWeight.Semibold
+      Size: =13
+
+    DeptCardMeta:
+      Type: Label
+      X: =14
+      Y: =66
+      Width: =180
+      Height: =18
+      Text: =If(
+               ActivePage = "corp-depts",
+               "CC " & ThisItem.CC & " · " & Text(ThisItem.Accounts,"[$-en]0") & " accounts",
+               Text(ThisItem.Projects,"[$-en]0") & " projects"
+             ) & " · " & Text(If(ThisItem.YTD>0, Round(ThisItem.Act/ThisItem.YTD*100,0), 0), "[$-en]0") & "% utilized"
+      Color: =RGBA(168, 156, 142, 1)
+      Size: =11
+
+    DeptCardBar:
+      Type: Rectangle
+      X: =14
+      Y: =90
+      Width: =172
+      Height: =4
+      Fill: =RGBA(228, 221, 210, 1)
+      BorderRadius: =2
+
+    DeptCardFill:
+      Type: Rectangle
+      X: =14
+      Y: =90
+      Width: =Min(172, 172 * If(ThisItem.YTD>0, ThisItem.Act/ThisItem.YTD, 0))
+      Height: =4
+      Fill: =If(
+               ThisItem.YTD = 0 || ThisItem.Act/ThisItem.YTD < 0.5, RGBA(163, 45, 45, 1),
+               ThisItem.Act/ThisItem.YTD < 0.8, RGBA(176, 122, 30, 1),
+               RGBA(59, 109, 17, 1)
+             )
+      BorderRadius: =2
+
+    DeptCardBtn:
+      Type: Rectangle
+      Width: =200
+      Height: =120
+      Fill: =Transparent()
+      OnSelect: =UpdateContext({
+                   SelectedDept: ThisItem.Dept,
+                   ActivePage: If(ActivePage = "corp-depts", "corp-dept", "proj-dept"),
+                   SelectedItem: Blank()
+                 })
+
+  ##══ ACCOUNTS TABLE (accounts page) ══════════════════════════════
+  AccountsGallery:
+    Type: Gallery
+    Layout: =Layout.Vertical
+    X: =228
+    Y: =152
+    Width: =Parent.Width - 248
+    Height: =Parent.Height - 168
+    Visible: =ActivePage = "accounts"
+    Items: =Filter(CorpAccounts, Dept = SelectedDept)
+    TemplatePadding: =0
+    TemplateSize: =52
+    ShowScrollbar: =true
+
+    AccRowBg:
+      Type: Rectangle
+      Width: =Parent.Width
+      Height: =50
+      Fill: =If(Mod(ThisItem.Index, 2) = 0, RGBA(245, 242, 236, 0.5), White)
+
+    AccCode:
+      Type: Label
+      X: =8
+      Y: =8
+      Width: =80
+      Height: =18
+      Text: =ThisItem.Code
+      Size: =10
+      Color: =RGBA(168, 156, 142, 1)
+      FontWeight: =FontWeight.Bold
+
+    AccDesc:
+      Type: Label
+      X: =8
+      Y: =24
+      Width: =300
+      Height: =18
+      Text: =ThisItem.Desc
+      Size: =12
+      FontWeight: =FontWeight.Medium
+
+    AccFY:
+      Type: Label
+      X: =315
+      Y: =16
+      Width: =120
+      Height: =20
+      Text: =Text(ThisItem.FY, "[$-en-US]AED #,##0")
+      Size: =11
+      Align: =Align.Right
+
+    AccYTD:
+      Type: Label
+      X: =445
+      Y: =16
+      Width: =120
+      Height: =20
+      Text: =Text(ThisItem.YTD, "[$-en-US]AED #,##0")
+      Size: =11
+      Align: =Align.Right
+
+    AccAct:
+      Type: Label
+      X: =575
+      Y: =16
+      Width: =120
+      Height: =20
+      Text: =Text(ThisItem.Act, "[$-en-US]AED #,##0")
+      Size: =11
+      Align: =Align.Right
+
+    AccEnc:
+      Type: Label
+      X: =705
+      Y: =16
+      Width: =120
+      Height: =20
+      Text: =Text(ThisItem.Enc, "[$-en-US]AED #,##0")
+      Size: =11
+      Align: =Align.Right
+
+    AccVar:
+      Type: Label
+      X: =835
+      Y: =16
+      Width: =120
+      Height: =20
+      Text: =Text(ThisItem.YTD - ThisItem.Act, "[$-en-US]AED #,##0")
+      Size: =11
+      FontWeight: =FontWeight.Semibold
+      Align: =Align.Right
+      Color: =If(ThisItem.YTD - ThisItem.Act >= 0, RGBA(59, 109, 17, 1), RGBA(163, 45, 45, 1))
+
+    AccUtil:
+      Type: Label
+      X: =965
+      Y: =10
+      Width: =80
+      Height: =30
+      Text: =Text(If(ThisItem.YTD>0, Round(ThisItem.Act/ThisItem.YTD*100,0), 0), "[$-en]0") & "%"
+      Size: =13
+      FontWeight: =FontWeight.Bold
+      Align: =Align.Center
+      Color: =If(
+               ThisItem.YTD = 0 || ThisItem.Act/ThisItem.YTD < 0.5, RGBA(163, 45, 45, 1),
+               ThisItem.Act/ThisItem.YTD < 0.8, RGBA(176, 122, 30, 1),
+               RGBA(59, 109, 17, 1)
+             )
+
+    AccStatusBadge:
+      Type: Label
+      X: =1055
+      Y: =12
+      Width: =90
+      Height: =26
+      BorderRadius: =13
+      Text: =If(
+               ThisItem.YTD = 0 || ThisItem.Act/ThisItem.YTD < 0.5, "Significant",
+               ThisItem.Act/ThisItem.YTD < 0.8, "Moderate",
+               "On track"
+             )
+      Color: =White
+      FontWeight: =FontWeight.Bold
+      Size: =10
+      Align: =Align.Center
+      Fill: =If(
+               ThisItem.YTD = 0 || ThisItem.Act/ThisItem.YTD < 0.5, RGBA(163, 45, 45, 1),
+               ThisItem.Act/ThisItem.YTD < 0.8, RGBA(176, 122, 30, 1),
+               RGBA(59, 109, 17, 1)
+             )
+
+    AccRowDivider:
+      Type: Rectangle
+      Y: =50
+      Width: =Parent.Width
+      Height: =1
+      Fill: =RGBA(228, 221, 210, 1)
+
+  ##══ PROJECTS TABLE (projects page) ══════════════════════════════
+  ProjectsGallery:
+    Type: Gallery
+    Layout: =Layout.Vertical
+    X: =228
+    Y: =152
+    Width: =Parent.Width - 248
+    Height: =Parent.Height - 168
+    Visible: =ActivePage = "projects"
+    Items: =Filter(ProjItems, Dept = SelectedDept)
+    TemplatePadding: =0
+    TemplateSize: =60
+    ShowScrollbar: =true
+
+    ProjRowBg:
+      Type: Rectangle
+      Width: =Parent.Width
+      Height: =58
+      Fill: =If(Mod(ThisItem.Index, 2) = 0, RGBA(245, 242, 236, 0.5), White)
+
+    ProjCode:
+      Type: Label
+      X: =8
+      Y: =8
+      Width: =100
+      Height: =16
+      Text: =ThisItem.Code
+      Size: =10
+      Color: =RGBA(168, 156, 142, 1)
+      FontWeight: =FontWeight.Bold
+
+    ProjDesc:
+      Type: Label
+      X: =8
+      Y: =24
+      Width: =280
+      Height: =18
+      Text: =ThisItem.Desc
+      Size: =12
+      FontWeight: =FontWeight.Medium
+
+    ProjDir:
+      Type: Label
+      X: =8
+      Y: =40
+      Width: =280
+      Height: =16
+      Text: =ThisItem.Dir
+      Size: =11
+      Color: =RGBA(122, 110, 101, 1)
+
+    ProjFY:
+      Type: Label
+      X: =298
+      Y: =20
+      Width: =130
+      Height: =20
+      Text: =Text(ThisItem.FY, "[$-en-US]AED #,##0")
+      Size: =11
+      Align: =Align.Right
+
+    ProjYTD:
+      Type: Label
+      X: =438
+      Y: =20
+      Width: =130
+      Height: =20
+      Text: =Text(ThisItem.YTD, "[$-en-US]AED #,##0")
+      Size: =11
+      Align: =Align.Right
+
+    ProjAct:
+      Type: Label
+      X: =578
+      Y: =20
+      Width: =130
+      Height: =20
+      Text: =Text(ThisItem.Act, "[$-en-US]AED #,##0")
+      Size: =11
+      Align: =Align.Right
+
+    ProjEnc:
+      Type: Label
+      X: =718
+      Y: =20
+      Width: =130
+      Height: =20
+      Text: =Text(ThisItem.Enc, "[$-en-US]AED #,##0")
+      Size: =11
+      Align: =Align.Right
+
+    ProjVar:
+      Type: Label
+      X: =858
+      Y: =20
+      Width: =130
+      Height: =20
+      Text: =Text(ThisItem.YTD - ThisItem.Act, "[$-en-US]AED #,##0")
+      Size: =11
+      FontWeight: =FontWeight.Semibold
+      Align: =Align.Right
+      Color: =If(ThisItem.YTD - ThisItem.Act >= 0, RGBA(59, 109, 17, 1), RGBA(163, 45, 45, 1))
+
+    ProjUtil:
+      Type: Label
+      X: =998
+      Y: =16
+      Width: =80
+      Height: =28
+      Text: =Text(If(ThisItem.YTD>0, Round(ThisItem.Act/ThisItem.YTD*100,0), 0), "[$-en]0") & "%"
+      Size: =13
+      FontWeight: =FontWeight.Bold
+      Align: =Align.Center
+      Color: =If(
+               ThisItem.YTD = 0 || ThisItem.Act/ThisItem.YTD < 0.5, RGBA(163, 45, 45, 1),
+               ThisItem.Act/ThisItem.YTD < 0.8, RGBA(176, 122, 30, 1),
+               RGBA(59, 109, 17, 1)
+             )
+
+    ProjRowDivider:
+      Type: Rectangle
+      Y: =58
+      Width: =Parent.Width
+      Height: =1
+      Fill: =RGBA(228, 221, 210, 1)
+
+  ##══ TRANSFER REQUEST FORM ═══════════════════════════════════════
+  ## Mirrors the HTML transfer form exactly — sends mailto to Tawfiq.Nayef@npo.ae
+
+  TransferFormContainer:
+    Type: GroupContainer
+    X: =228
+    Y: =152
+    Width: =Parent.Width - 248
+    Height: =Parent.Height - 168
+    Visible: =ActivePage = "transfer"
+
+    TransferCard:
+      Type: Rectangle
+      Width: =Parent.Width
+      Height: =Parent.Height
+      Fill: =White
+      BorderRadius: =14
+      BorderColor: =RGBA(228, 221, 210, 1)
+      BorderThickness: =1
+      DropShadow: =DropShadow.Light
+
+    # Type selector
+    TypeLabel:
+      Type: Label
+      X: =24
+      Y: =20
+      Width: =200
+      Height: =18
+      Text: ="BUDGET TYPE"
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      Color: =RGBA(122, 110, 101, 1)
+
+    TypeDropdown:
+      Type: Dropdown
+      X: =24
+      Y: =38
+      Width: =200
+      Height: =36
+      Items: =["All", "Corporate", "Projects"]
+      Default: ="All"
+
+    # From/To header
+    FromHeaderLabel:
+      Type: Label
+      X: =24
+      Y: =90
+      Width: =280
+      Height: =22
+      Text: ="← Transfer From"
+      FontWeight: =FontWeight.Bold
+      Color: =RGBA(122, 110, 101, 1)
+      Size: =12
+      BorderColor: =RGBA(228, 221, 210, 1)
+
+    ArrowLabel:
+      Type: Label
+      X: =324
+      Y: =86
+      Width: =40
+      Height: =30
+      Text: ="→"
+      Align: =Align.Center
+      Size: =18
+      Color: =RGBA(168, 156, 142, 1)
+
+    ToHeaderLabel:
+      Type: Label
+      X: =374
+      Y: =90
+      Width: =280
+      Height: =22
+      Text: ="Transfer To →"
+      FontWeight: =FontWeight.Bold
+      Color: =RGBA(122, 110, 101, 1)
+      Size: =12
+
+    # From Department
+    FromDeptLabel:
+      Type: Label
+      X: =24
+      Y: =124
+      Width: =280
+      Height: =18
+      Text: ="FROM — DEPARTMENT"
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      Color: =RGBA(122, 110, 101, 1)
+
+    FromDeptDropdown:
+      Type: Dropdown
+      X: =24
+      Y: =142
+      Width: =280
+      Height: =36
+      Items: =If(TypeDropdown.Selected.Value = "Projects",
+               AddColumns(Distinct(ProjItems, Dept), "Label", Result & " (Projects)"),
+               If(TypeDropdown.Selected.Value = "Corporate",
+                 AddColumns(CorpDeptSummary, "Label", Dept & " (CC " & CC & ")"),
+                 /* All */
+                 Ungroup(Table(
+                   {Items: AddColumns(CorpDeptSummary, "Label", Dept & " (CC " & CC & ")")},
+                   {Items: AddColumns(Distinct(ProjItems, Dept), "Label", Result & " (Projects)")}
+                 ), "Items")
+               )
+             )
+
+    # From Account/Project
+    FromAccLabel:
+      Type: Label
+      X: =24
+      Y: =190
+      Width: =280
+      Height: =18
+      Text: ="FROM — ACCOUNT / PROJECT"
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      Color: =RGBA(122, 110, 101, 1)
+
+    FromAccDropdown:
+      Type: Dropdown
+      X: =24
+      Y: =208
+      Width: =280
+      Height: =36
+      Items: =If(
+               StartsWith(FromDeptDropdown.Selected.Value, "CC") || LookUp(CorpDeptSummary, Dept = First(Split(FromDeptDropdown.Selected.Value," (CC")).Value) <> Blank(),
+               AddColumns(Filter(CorpAccounts, Dept = First(Split(FromDeptDropdown.Selected.Value," (CC")).Value), "Label", Code & " — " & Desc),
+               AddColumns(Filter(ProjItems,    Dept = First(Split(FromDeptDropdown.Selected.Value," (Proj")).Value), "Label", Code & " — " & Desc)
+             ))
+
+    # To Department
+    ToDeptLabel:
+      Type: Label
+      X: =374
+      Y: =124
+      Width: =280
+      Height: =18
+      Text: ="TO — DEPARTMENT"
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      Color: =RGBA(122, 110, 101, 1)
+
+    ToDeptDropdown:
+      Type: Dropdown
+      X: =374
+      Y: =142
+      Width: =280
+      Height: =36
+      Items: =FromDeptDropdown.Items
+
+    # To Account/Project
+    ToAccLabel:
+      Type: Label
+      X: =374
+      Y: =190
+      Width: =280
+      Height: =18
+      Text: ="TO — ACCOUNT / PROJECT"
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      Color: =RGBA(122, 110, 101, 1)
+
+    ToAccDropdown:
+      Type: Dropdown
+      X: =374
+      Y: =208
+      Width: =280
+      Height: =36
+      Items: =If(
+               StartsWith(ToDeptDropdown.Selected.Value, "CC") || LookUp(CorpDeptSummary, Dept = First(Split(ToDeptDropdown.Selected.Value," (CC")).Value) <> Blank(),
+               AddColumns(Filter(CorpAccounts, Dept = First(Split(ToDeptDropdown.Selected.Value," (CC")).Value), "Label", Code & " — " & Desc),
+               AddColumns(Filter(ProjItems,    Dept = First(Split(ToDeptDropdown.Selected.Value," (Proj")).Value), "Label", Code & " — " & Desc)
+             ))
+
+    # Amount
+    AmountLabel:
+      Type: Label
+      X: =24
+      Y: =260
+      Width: =200
+      Height: =18
+      Text: ="AMOUNT (AED)"
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      Color: =RGBA(122, 110, 101, 1)
+
+    AmountInput:
+      Type: TextInput
+      X: =24
+      Y: =278
+      Width: =200
+      Height: =36
+      PlaceholderText: ="e.g. 50,000"
+      Format: =TextFormat.Number
+      BorderRadius: =6
+      BorderColor: =RGBA(228, 221, 210, 1)
+
+    # Monthly cash flow (Jan–Dec)
+    CashflowLabel:
+      Type: Label
+      X: =24
+      Y: =330
+      Width: =Parent.Width - 48
+      Height: =18
+      Text: ="MONTHLY CASH FLOW (AED) — must total the transfer amount"
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      Color: =RGBA(122, 110, 101, 1)
+
+    MonthJan:
+      Type: TextInput
+      X: =24
+      Y: =350
+      Width: =70
+      Height: =32
+      PlaceholderText: ="Jan"
+      Format: =TextFormat.Number
+      BorderRadius: =6
+
+    MonthFeb:
+      Type: TextInput
+      X: =104
+      Y: =350
+      Width: =70
+      Height: =32
+      PlaceholderText: ="Feb"
+      Format: =TextFormat.Number
+      BorderRadius: =6
+
+    MonthMar:
+      Type: TextInput
+      X: =184
+      Y: =350
+      Width: =70
+      Height: =32
+      PlaceholderText: ="Mar"
+      Format: =TextFormat.Number
+      BorderRadius: =6
+
+    MonthApr:
+      Type: TextInput
+      X: =264
+      Y: =350
+      Width: =70
+      Height: =32
+      PlaceholderText: ="Apr"
+      Format: =TextFormat.Number
+      BorderRadius: =6
+
+    MonthMay:
+      Type: TextInput
+      X: =344
+      Y: =350
+      Width: =70
+      Height: =32
+      PlaceholderText: ="May"
+      Format: =TextFormat.Number
+      BorderRadius: =6
+
+    MonthJun:
+      Type: TextInput
+      X: =424
+      Y: =350
+      Width: =70
+      Height: =32
+      PlaceholderText: ="Jun"
+      Format: =TextFormat.Number
+      BorderRadius: =6
+
+    MonthJul:
+      Type: TextInput
+      X: =504
+      Y: =350
+      Width: =70
+      Height: =32
+      PlaceholderText: ="Jul"
+      Format: =TextFormat.Number
+      BorderRadius: =6
+
+    MonthAug:
+      Type: TextInput
+      X: =584
+      Y: =350
+      Width: =70
+      Height: =32
+      PlaceholderText: ="Aug"
+      Format: =TextFormat.Number
+      BorderRadius: =6
+
+    MonthSep:
+      Type: TextInput
+      X: =664
+      Y: =350
+      Width: =70
+      Height: =32
+      PlaceholderText: ="Sep"
+      Format: =TextFormat.Number
+      BorderRadius: =6
+
+    MonthOct:
+      Type: TextInput
+      X: =744
+      Y: =350
+      Width: =70
+      Height: =32
+      PlaceholderText: ="Oct"
+      Format: =TextFormat.Number
+      BorderRadius: =6
+
+    MonthNov:
+      Type: TextInput
+      X: =824
+      Y: =350
+      Width: =70
+      Height: =32
+      PlaceholderText: ="Nov"
+      Format: =TextFormat.Number
+      BorderRadius: =6
+
+    MonthDec:
+      Type: TextInput
+      X: =904
+      Y: =350
+      Width: =70
+      Height: =32
+      PlaceholderText: ="Dec"
+      Format: =TextFormat.Number
+      BorderRadius: =6
+
+    CashflowTotal:
+      Type: Label
+      X: =24
+      Y: =390
+      Width: =400
+      Height: =22
+      Text: ="Distributed: AED " &
+             Text(
+               (Value(MonthJan.Text)+Value(MonthFeb.Text)+Value(MonthMar.Text)+Value(MonthApr.Text)+
+                Value(MonthMay.Text)+Value(MonthJun.Text)+Value(MonthJul.Text)+Value(MonthAug.Text)+
+                Value(MonthSep.Text)+Value(MonthOct.Text)+Value(MonthNov.Text)+Value(MonthDec.Text)),
+               "#,##0"
+             ) & " of AED " & Text(Value(AmountInput.Text),"#,##0") &
+             If(
+               Round(Value(MonthJan.Text)+Value(MonthFeb.Text)+Value(MonthMar.Text)+Value(MonthApr.Text)+
+                     Value(MonthMay.Text)+Value(MonthJun.Text)+Value(MonthJul.Text)+Value(MonthAug.Text)+
+                     Value(MonthSep.Text)+Value(MonthOct.Text)+Value(MonthNov.Text)+Value(MonthDec.Text),0) =
+               Round(Value(AmountInput.Text),0) && Value(AmountInput.Text) > 0,
+               "  ✓ matches",
+               If(Value(AmountInput.Text)>0," (must equal the amount)","")
+             )
+      Color: =If(
+               Round(Value(MonthJan.Text)+Value(MonthFeb.Text)+Value(MonthMar.Text)+Value(MonthApr.Text)+
+                     Value(MonthMay.Text)+Value(MonthJun.Text)+Value(MonthJul.Text)+Value(MonthAug.Text)+
+                     Value(MonthSep.Text)+Value(MonthOct.Text)+Value(MonthNov.Text)+Value(MonthDec.Text),0) =
+               Round(Value(AmountInput.Text),0) && Value(AmountInput.Text) > 0,
+               RGBA(59, 109, 17, 1),
+               RGBA(163, 45, 45, 1)
+             )
+      FontWeight: =FontWeight.Semibold
+      Size: =12
+
+    # Requested By
+    NameLabel:
+      Type: Label
+      X: =24
+      Y: =424
+      Width: =280
+      Height: =18
+      Text: ="REQUESTED BY"
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      Color: =RGBA(122, 110, 101, 1)
+
+    NameInput:
+      Type: TextInput
+      X: =24
+      Y: =442
+      Width: =280
+      Height: =36
+      Default: =User().FullName
+      PlaceholderText: ="Your full name"
+      BorderRadius: =6
+      BorderColor: =RGBA(228, 221, 210, 1)
+
+    # Justification
+    JustLabel:
+      Type: Label
+      X: =24
+      Y: =492
+      Width: =Parent.Width - 48
+      Height: =18
+      Text: ="JUSTIFICATION"
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      Color: =RGBA(122, 110, 101, 1)
+
+    JustInput:
+      Type: TextInput
+      X: =24
+      Y: =510
+      Width: =Parent.Width - 48
+      Height: =80
+      Mode: =TextMode.MultiLine
+      PlaceholderText: ="Explain why this budget transfer is needed..."
+      BorderRadius: =6
+      BorderColor: =RGBA(228, 221, 210, 1)
+
+    # Submit Button — builds mailto just like the HTML version
+    SubmitButton:
+      Type: Button
+      X: =24
+      Y: =608
+      Width: =Parent.Width - 48
+      Height: =48
+      Text: ="⟶  Submit Transfer Request"
+      Fill: =RGBA(44, 36, 32, 1)
+      Color: =White
+      BorderRadius: =10
+      FontWeight: =FontWeight.Bold
+      Size: =14
+      OnSelect: |
+        =If(
+          IsBlank(FromDeptDropdown.Selected.Value) || IsBlank(FromAccDropdown.Selected.Value) ||
+          IsBlank(ToDeptDropdown.Selected.Value)   || IsBlank(ToAccDropdown.Selected.Value)   ||
+          IsBlank(AmountInput.Text) || IsBlank(NameInput.Text) || IsBlank(JustInput.Text),
+          Notify("Please fill in all fields before submitting.", NotificationType.Warning),
+
+          /* Validate cashflow totals match amount */
+          If(
+            Round(Value(MonthJan.Text)+Value(MonthFeb.Text)+Value(MonthMar.Text)+Value(MonthApr.Text)+
+                  Value(MonthMay.Text)+Value(MonthJun.Text)+Value(MonthJul.Text)+Value(MonthAug.Text)+
+                  Value(MonthSep.Text)+Value(MonthOct.Text)+Value(MonthNov.Text)+Value(MonthDec.Text),0) <>
+            Round(Value(AmountInput.Text),0),
+            Notify("The monthly cash flow must total the transfer amount.", NotificationType.Warning),
+
+            /* Build email body and open mail client */
+            Launch(
+              "mailto:Tawfiq.Nayef@npo.ae?subject=" &
+              EncodeUrl("Budget Transfer Request — " & FromDeptDropdown.Selected.Value & " → " & ToDeptDropdown.Selected.Value) &
+              "&body=" &
+              EncodeUrl(
+                "BUDGET TRANSFER REQUEST" & Char(13) & Char(10) & Char(13) & Char(10) &
+                "Budget type: "      & TypeDropdown.Selected.Value & Char(13) & Char(10) &
+                "From department: "  & FromDeptDropdown.Selected.Value & Char(13) & Char(10) &
+                "From account/project: " & FromAccDropdown.Selected.Value & Char(13) & Char(10) &
+                "To department: "    & ToDeptDropdown.Selected.Value & Char(13) & Char(10) &
+                "To account/project: " & ToAccDropdown.Selected.Value & Char(13) & Char(10) &
+                "Amount (AED): "     & AmountInput.Text & Char(13) & Char(10) &
+                "Monthly cash flow: Jan " & MonthJan.Text & " | Feb " & MonthFeb.Text & " | Mar " & MonthMar.Text &
+                " | Apr " & MonthApr.Text & " | May " & MonthMay.Text & " | Jun " & MonthJun.Text &
+                " | Jul " & MonthJul.Text & " | Aug " & MonthAug.Text & " | Sep " & MonthSep.Text &
+                " | Oct " & MonthOct.Text & " | Nov " & MonthNov.Text & " | Dec " & MonthDec.Text & Char(13) & Char(10) &
+                "Requested by: "     & NameInput.Text & Char(13) & Char(10) & Char(13) & Char(10) &
+                "Justification:" & Char(13) & Char(10) & JustInput.Text
+              )
+            );
+            Notify("Request email is ready — click Send in your mail app to submit to Budgeting.", NotificationType.Success)
+          )
+        )
+
+    SuccessMsg:
+      Type: Label
+      X: =24
+      Y: =665
+      Width: =Parent.Width - 48
+      Height: =30
+      Text: ="✓  Your request email is ready — click Send in your mail app to submit it to Budgeting."
+      Fill: =RGBA(236, 241, 230, 1)
+      Color: =RGBA(59, 109, 17, 1)
+      BorderRadius: =8
+      Size: =13
+      FontWeight: =FontWeight.Medium
+      Visible: =false   # set to true after submit via UpdateContext

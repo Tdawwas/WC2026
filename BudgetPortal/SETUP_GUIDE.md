@@ -1,182 +1,191 @@
-# Budget Performance Portal – Power Apps Setup Guide
+# NPO Budget Portal – Power Apps Setup Guide
+**National Projects Office | FY2026 | AED Currency**
 
-## What This App Does
+This Power Apps canvas app is a faithful recreation of your HTML portal
+(`NPO_Budget_Portal_FY2026_MASTER_All_Departments.html`) built for Microsoft Power Apps Desktop.
 
-| Screen | Features |
-|--------|----------|
-| **Budget Performance** | KPI cards (Total Budget / Actual / Variance / % Used), filterable detail table with color-coded status badges |
-| **Transfer Requests** | Submit new budget transfer requests, view pending/approved/rejected counts, search/filter, approval workflow ready |
+---
+
+## What the App Contains
+
+### Real Data Already Embedded
+All your FY2026 data is pre-loaded in `App.yaml` → `OnStart`:
+
+| Data | Records |
+|------|---------|
+| Corporate accounts | 54 accounts across 8 departments |
+| Project items | 21 projects across 4 departments |
+| Departments (Corp) | Logistics & GS, IT, HR, Financial Affairs, Org Dev, Enablement, Legal Affairs, Strategic Initiatives |
+| Departments (Proj) | Activation, Creative, Strategic Initiatives, Enablement |
+| Fields per record | FY Budget, YTD Budget, Actual, Encumbrances, Jan–May actuals |
+| Currency | AED |
+
+### Screens
+
+| Screen | Purpose |
+|--------|---------|
+| `LoginScreen` | Department selector — same as HTML login |
+| `DashboardScreen` | All views: NPO overview, Corp All, Corp Dept, Accounts, Proj All, Proj Dept, Projects, Transfer |
+
+### Pages (within DashboardScreen, controlled by `ActivePage` variable)
+- `npo` — Full NPO organization view with Corporate + Projects split
+- `corp-all` — All corporate departments overview + KPIs
+- `corp-depts` — Department cards grid (click to drill)
+- `corp-dept` — Single department overview + KPIs
+- `accounts` — Account-level table with utilization % and status badges
+- `proj-all` — All projects overview + KPIs
+- `proj-depts` — Project department cards grid
+- `proj-dept` — Single project department overview
+- `projects` — Project-level table
+- `transfer` — Budget transfer request form → sends **mailto:Tawfiq.Nayef@npo.ae**
 
 ---
 
 ## Step 1 – Open Power Apps Maker
 
 1. Go to **https://make.powerapps.com**
-2. Sign in with your Microsoft 365 account (the one with your Power Apps licence)
-3. Select the correct **Environment** (top-right dropdown)
+2. Sign in with your Microsoft 365 / NPO account
+3. Select the correct Environment (top-right)
 
 ---
 
-## Step 2 – Create a New Canvas App
+## Step 2 – Create the Canvas App
 
-1. Click **+ Create** → **Blank app** → **Blank canvas app**
-2. Name it: `Budget Performance Portal`
-3. Format: **Tablet** (1366 × 768) — best for desktop use
+1. **+ Create** → **Blank app** → **Blank canvas app**
+2. Name: `NPO Budget Portal FY2026`
+3. Format: **Tablet** (1366 × 768)
 4. Click **Create**
 
 ---
 
-## Step 3 – Set Up the Two Screens
+## Step 3 – Add the Screens
 
-In the left panel click **+ New screen** → **Blank** and name them:
-- `BudgetPerformanceScreen`
-- `TransferRequestScreen`
+In the left tree view:
+1. Rename the default screen to `LoginScreen`
+2. Add a second screen: `DashboardScreen`
 
 ---
 
-## Step 4 – Add the App OnStart Code
+## Step 4 – Wire Up the App.OnStart
 
-1. Click the **App** object in the tree view (left panel)
+1. Click **App** in the tree view
 2. Select the `OnStart` property
-3. Paste the entire `OnStart` formula from `PowerApps/src/App.yaml`
+3. Paste the full formula from `PowerApps/src/App.yaml`
 
-This loads sample data. Later you will swap it for your real Excel / Oracle source.
+This loads all 54 corporate accounts + 21 projects into Power Apps Collections.
 
 ---
 
-## Step 5 – Build the Budget Performance Screen
+## Step 5 – Build LoginScreen
 
-Use the YAML file `PowerApps/src/Screens/BudgetPerformance.yaml` as your blueprint.
+Copy all controls from `PowerApps/src/Screens/LoginScreen.yaml`:
 
-**Quick build order:**
-1. Header rectangle + labels (top dark blue bar)
-2. Navigation buttons (2 tabs)
-3. Filter row (3 dropdowns + Apply button + Export button)
-4. 4 KPI cards (white rectangles with labels)
-5. Table header rectangle + column labels
-6. Gallery with all row controls
+Key pieces:
+- Dropdown with all dept options (NPO / Corporate / Projects)
+- Access button → `Navigate(DashboardScreen)` + sets `SelectedView`
+- Same espresso/gold brand colors as your HTML portal (`#2C2420` / `#A47F60`)
 
-**Key formula – Apply Filter button OnSelect:**
+---
+
+## Step 6 – Build DashboardScreen
+
+This is the main screen. All pages are controlled by the `ActivePage` context variable.
+
+Copy from `PowerApps/src/Screens/DashboardScreen.yaml`:
+
+| Control | Purpose |
+|---------|---------|
+| TopBar | Navy header with org name, dept pill, switch button |
+| Left sidebar | Navigation buttons — show/hide based on `ViewType` |
+| KPIContainer | 5 KPI cards — FY Budget / YTD / Actual / Enc / Variance |
+| DeptCardsGallery | Dept card grid for `corp-depts` and `proj-depts` pages |
+| AccountsGallery | Account rows with util % and status badge |
+| ProjectsGallery | Project rows with director name |
+| TransferFormContainer | Full transfer form with 12 monthly cashflow inputs |
+
+### Key Formulas
+
+**Variance color (green/red):**
 ```powerapps
-ClearCollect(
-  FilteredBudget,
-  Filter(
-    BudgetData,
-    (DeptDropdown.Selected.Value = "All Departments" || Department = DeptDropdown.Selected.Value),
-    Year = Value(YearDropdown.Selected.Value)
-  )
+If(ThisItem.YTD - ThisItem.Act >= 0, RGBA(59,109,17,1), RGBA(163,45,45,1))
+```
+
+**Status badge:**
+```powerapps
+If(ThisItem.YTD=0 || ThisItem.Act/ThisItem.YTD < 0.5, "Significant",
+   ThisItem.Act/ThisItem.YTD < 0.8, "Moderate", "On track")
+```
+
+**Transfer submit — mailto (same as HTML):**
+```powerapps
+Launch(
+  "mailto:Tawfiq.Nayef@npo.ae?subject=" &
+  EncodeUrl("Budget Transfer Request — " & FromDept & " → " & ToDept) &
+  "&body=" & EncodeUrl(bodyText)
 )
 ```
 
 ---
 
-## Step 6 – Build the Transfer Request Screen
+## Step 7 – Install Power Apps Desktop
 
-Use `PowerApps/src/Screens/TransferRequest.yaml` as your blueprint.
-
-**Key formula – Submit button OnSelect:**
-```powerapps
-If(
-  IsBlank(FormFromDeptInput.Selected.Value) || IsBlank(FormAmountInput.Text),
-  Notify("Please fill in all required fields", NotificationType.Warning),
-  Collect(
-    TransferRequests,
-    {
-      RequestRef: "TR-" & Text(Now(), "yyyymmdd") & "-" & Text(CountRows(TransferRequests)+1,"000"),
-      RequestDate: Now(),
-      RequestedBy: User().FullName,
-      FromDepartment: FormFromDeptInput.Selected.Value,
-      ToDepartment: FormToDeptInput.Selected.Value,
-      TransferAmount: Value(FormAmountInput.Text),
-      Status: "Pending"
-    }
-  );
-  UpdateContext({ShowForm: false});
-  Notify("Request submitted!", NotificationType.Success)
-)
-```
+1. Open **Microsoft Store** on your desktop
+2. Search **"Power Apps"** → Install (free)
+3. Sign in with your Microsoft 365 account
+4. Your app appears under **My Apps** → click to run it natively
 
 ---
 
-## Step 7 – Download the App to Your Desktop
+## Step 8 – Connect Real Data (When Ready)
 
-Power Apps provides a **desktop player** so you don't need a browser:
+### Option A – Keep data in Power Apps (current approach)
+- All data lives in the `OnStart` formula
+- Update the numbers there each month when you get new actuals from Oracle EPS
+- **Advantage**: No extra licence needed
 
-1. Go to **https://apps.microsoft.com/store/detail/power-apps/9NBLGGH5Z8F3**
-   or search **"Power Apps"** in the Microsoft Store
-2. Install **Power Apps** (free player app)
-3. Open it and sign in → your app appears in **My Apps**
-4. Click the app → it runs natively on your desktop
-
----
-
-## Step 8 – Connect Your Real Data (When Ready)
-
-### Option A – Excel (OneDrive / SharePoint)
-1. Upload your Excel file to **OneDrive for Business**
-2. In Power Apps: **Data → Add data → Excel Online (Business)**
-3. Pick your file and both tables (`BudgetData`, `TransferRequests`)
-4. In `App.OnStart` replace `ClearCollect(BudgetData, {...sample...})` with:
+### Option B – Excel on SharePoint / OneDrive
+1. Create an Excel file with two sheets: `CorpAccounts` and `ProjItems` (same columns as the data in `App.yaml`)
+2. Upload to **SharePoint** or **OneDrive for Business**
+3. In Power Apps: **Data → Add data → Excel Online (Business)** → select your file
+4. Replace `ClearCollect(CorpAccounts, {...})` in OnStart with:
    ```powerapps
-   ClearCollect(BudgetData, BudgetData_Table)
+   ClearCollect(CorpAccounts, CorpAccounts_Table)
+   ```
+5. **No Power Automate licence needed for read-only**
+
+### Option C – Oracle EPS via Power Automate
+When you have a **Power Automate licence**:
+1. Create a flow: HTTP trigger → Oracle DB connector → query EPS budget table
+2. Return JSON with FY/YTD/Act/Enc by account
+3. In Power Apps call it:
+   ```powerapps
+   ClearCollect(CorpAccounts, OracleEPSFlow.Run(2026).accounts)
    ```
 
-### Option B – Oracle EPS (via Power Automate)
-1. Create a **Power Automate** flow with the **Oracle DB connector**
-2. Query your EPS budget table: `SELECT dept, cost_center, budget_amt, actual_amt FROM eps_budget WHERE fiscal_year = :year`
-3. Return results as JSON
-4. In Power Apps call the flow:
-   ```powerapps
-   ClearCollect(BudgetData, BudgetFlow.Run(YearDropdown.Selected.Value).budgetItems)
-   ```
+---
 
-### Option C – SharePoint List (easiest, no extra licence)
-1. Create two SharePoint lists: `BudgetData` and `TransferRequests`
-2. In Power Apps: **Data → SharePoint** → connect both lists
-3. Direct delegation works — no `ClearCollect` needed for large datasets
+## Brand Colors (matching your HTML portal)
+
+| CSS Variable | Color | RGBA in Power Apps |
+|---|---|---|
+| `--navy` | Espresso dark | `RGBA(44, 36, 32, 1)` |
+| `--gold` | Bronze/tan | `RGBA(164, 127, 96, 1)` |
+| `--sf` | Sand/cream bg | `RGBA(245, 242, 236, 1)` |
+| `--grn` | Green (on track) | `RGBA(59, 109, 17, 1)` |
+| `--amb` | Amber (moderate) | `RGBA(176, 122, 30, 1)` |
+| `--red` | Red (significant) | `RGBA(163, 45, 45, 1)` |
 
 ---
 
-## Step 9 – Approval Workflow (Power Automate)
-
-When you get your **Power Automate licence**, create a flow:
-
-**Trigger:** When a new item is added to `TransferRequests` SharePoint list  
-**Action 1:** Send Approval email to budget manager  
-**Action 2 (Approved):** Update `Status` → `"Approved"` + email requester  
-**Action 2 (Rejected):** Update `Status` → `"Rejected"` + email requester with reason  
-
-In Power Apps, trigger it from the Submit button:
-```powerapps
-TransferApprovalFlow.Run(NewRequest.RequestRef, NewRequest.RequestedByEmail)
-```
-
----
-
-## App Colour Reference
-
-| Element | Colour |
-|---------|--------|
-| Header / Footer | `RGBA(0, 70, 127, 1)` – Dark Blue |
-| Active tab | `RGBA(0, 120, 212, 1)` – Microsoft Blue |
-| On Track badge | `RGBA(16, 124, 16, 1)` – Green |
-| At Risk badge | `RGBA(255, 140, 0, 1)` – Orange |
-| Over Budget badge | `RGBA(196, 43, 28, 1)` – Red |
-| Background | `RGBA(245, 247, 250, 1)` – Light Grey |
-
----
-
-## Files in This Package
+## File Structure
 
 ```
 BudgetPortal/
-├── SETUP_GUIDE.md                          ← This file
+├── SETUP_GUIDE.md                       ← This file
 └── PowerApps/
-    ├── src/
-    │   ├── App.yaml                        ← OnStart data + screen wiring
-    │   └── Screens/
-    │       ├── BudgetPerformance.yaml      ← Screen 1 full layout + formulas
-    │       └── TransferRequest.yaml        ← Screen 2 full layout + formulas
-    └── DataTemplates/
-        └── BudgetData_Template.xlsx.md     ← Excel column definitions
+    └── src/
+        ├── App.yaml                     ← OnStart: all 54 corp accounts + 21 projects
+        └── Screens/
+            ├── LoginScreen.yaml         ← Dept selector login screen
+            └── DashboardScreen.yaml     ← Main portal: all 9 pages + transfer form
 ```

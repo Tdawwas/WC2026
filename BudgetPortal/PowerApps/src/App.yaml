@@ -1,84 +1,161 @@
 ##
-## App: BudgetPortal
-## Canvas App – Tablet layout (1366 x 768)
+## App: NPO Budget Portal – FY2026
+## Canvas App – Tablet layout (1366 × 768)
+## National Projects Office | AED Currency
+## Mirrors: NPO_Budget_Portal_FY2026_MASTER_All_Departments.html
 ##
 
 App:
   BackEnabled: =true
-  Theme: =RGBA(0, 70, 127, 1)
-  StartScreen: =BudgetPerformanceScreen
+  StartScreen: =LoginScreen
 
   ##──────────────────────────────────────────
-  ## OnStart – Load sample data into Collections
-  ## Replace these with your real data source once
-  ## Power Automate / Excel / Oracle EPS is connected.
+  ## OnStart – Load ALL real NPO data into Collections
   ##──────────────────────────────────────────
   OnStart: |
-    =ClearCollect(
-      BudgetData,
-      /* ── SAMPLE DATA – replace with your Excel table or SharePoint list ── */
-      {Department: "Finance",        CostCenter: "CC-1001", Year: 2026, BudgetAmount: 850000,  ActualAmount: 612000},
-      {Department: "Finance",        CostCenter: "CC-1002", Year: 2026, BudgetAmount: 320000,  ActualAmount: 298000},
-      {Department: "Operations",     CostCenter: "CC-2001", Year: 2026, BudgetAmount: 1200000, ActualAmount: 1150000},
-      {Department: "Operations",     CostCenter: "CC-2002", Year: 2026, BudgetAmount: 540000,  ActualAmount: 489000},
-      {Department: "IT",             CostCenter: "CC-3001", Year: 2026, BudgetAmount: 960000,  ActualAmount: 1020000},
-      {Department: "IT",             CostCenter: "CC-3002", Year: 2026, BudgetAmount: 420000,  ActualAmount: 310000},
-      {Department: "HR",             CostCenter: "CC-4001", Year: 2026, BudgetAmount: 380000,  ActualAmount: 275000},
-      {Department: "Marketing",      CostCenter: "CC-5001", Year: 2026, BudgetAmount: 720000,  ActualAmount: 695000},
-      {Department: "Marketing",      CostCenter: "CC-5002", Year: 2026, BudgetAmount: 180000,  ActualAmount: 192000},
-      {Department: "Project Mgmt",   CostCenter: "CC-6001", Year: 2026, BudgetAmount: 650000,  ActualAmount: 420000}
+    =/* ── CORPORATE BUDGET DATA ─────────────────────────────────────── */
+    ClearCollect(CorpAccounts,
+
+      /* Logistics & General Services – CC 20620 */
+      {Dept:"Logistics & General Services", CC:"20620", Code:"172021", Desc:"Furniture & fixtures: Asset clearing",        FY:128000,   YTD:50000,   Enc:44000,    Act:26414.25,   Jan:0,        Feb:0,        Mar:26414.25, Apr:0,        May:0},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"172321", Desc:"Other Asset clearing",                        FY:20000,    YTD:6000,    Enc:0,        Act:19001,      Jan:0,        Feb:4715,     Mar:14286,    Apr:0,        May:0},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"172621", Desc:"Audio and Video Equipment: Asset clearing",   FY:50000,    YTD:50000,   Enc:0,        Act:0,          Jan:0,        Feb:0,        Mar:0,        Apr:0,        May:0},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"420200", Desc:"Catering service",                            FY:750000,   YTD:375000,  Enc:555880,   Act:56345.9,    Jan:21212.9,  Feb:0,        Mar:21318,    Apr:0,        May:13815},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"420310", Desc:"Cleaning: Business premises",                 FY:240000,   YTD:100000,  Enc:209672,   Act:23587.5,    Jan:14300,    Feb:0,        Mar:4487.5,   Apr:0,        May:4800},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"421200", Desc:"Operations management",                       FY:2580000,  YTD:1075000, Enc:1313757,  Act:823086.38,  Jan:0,        Feb:0,        Mar:147160.92,Apr:379958.2, May:295967.26},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"425510", Desc:"Conferences, seminars & exhibitions – Local", FY:290000,   YTD:95000,   Enc:271876,   Act:0,          Jan:0,        Feb:0,        Mar:0,        Apr:0,        May:0},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"425900", Desc:"Entertainment and hospitality",               FY:2006000,  YTD:810830,  Enc:563035.58,Act:160855.76,  Jan:31851.35, Feb:0,        Mar:41104.63, Apr:30323.43, May:57576.35},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"426290", Desc:"Insurance – Other",                           FY:12000,    YTD:12000,   Enc:0,        Act:7160,       Jan:0,        Feb:7160,     Mar:0,        Apr:0,        May:0},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"426900", Desc:"Postal, Courier Expenses",                    FY:40000,    YTD:20000,   Enc:0,        Act:0,          Jan:0,        Feb:0,        Mar:0,        Apr:0,        May:0},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"427720", Desc:"Recreational facilities & club memberships",  FY:626090,   YTD:284000,  Enc:47554.11, Act:507563.53,  Jan:0,        Feb:464249.25,Mar:21600,    Apr:21714.28, May:0},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"428090", Desc:"Business Travel – Combined expenses",         FY:600000,   YTD:300000,  Enc:0,        Act:512413.29,  Jan:0,        Feb:0,        Mar:0,        Apr:0,        May:512413.29},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"428510", Desc:"Promotion announcement/advertisement exps",   FY:90000,    YTD:32500,   Enc:0,        Act:71666,      Jan:4220,     Feb:3420,     Mar:2750,     Apr:61276,    May:0},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"428620", Desc:"Events – Production costs",                   FY:300000,   YTD:157500,  Enc:75850,    Act:14503.49,   Jan:5342.56,  Feb:850,      Mar:342.9,    Apr:7968.03,  May:0},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"428640", Desc:"Events – Awards, prizes & gifts",             FY:385000,   YTD:231000,  Enc:5015,     Act:89500,      Jan:0,        Feb:0,        Mar:0,        Apr:0,        May:89500},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"429900", Desc:"Other services – not elsewhere mentioned",    FY:288000,   YTD:141000,  Enc:182365.76,Act:21008.31,   Jan:12179.63, Feb:2197.65,  Mar:1532.79,  Apr:598.24,   May:4500},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"430120", Desc:"Rental – Buildings (non-staff residences)",   FY:2670000,  YTD:2670000, Enc:0,        Act:1836423.88, Jan:0,        Feb:0,        Mar:1836423.88,Apr:0,       May:0},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"430330", Desc:"Rental – Motor vehicles",                     FY:675000,   YTD:281250,  Enc:99900,    Act:262464,     Jan:174976,   Feb:43744,    Mar:43744,    Apr:0,        May:0},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"432120", Desc:"Building maintenance – Business premises",    FY:500000,   YTD:230000,  Enc:158314,   Act:21843,      Jan:0,        Feb:5686,     Mar:14277,    Apr:0,        May:1880},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"432208", Desc:"Kitchen equipment",                           FY:24000,    YTD:10000,   Enc:7200,     Act:0,          Jan:0,        Feb:0,        Mar:0,        Apr:0,        May:0},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"435505", Desc:"Fire fighting Material",                      FY:15000,    YTD:15000,   Enc:3875,     Act:1937.5,     Jan:0,        Feb:0,        Mar:1937.5,   Apr:0,        May:0},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"435740", Desc:"Fuel, oil and lubricants: Motor vehicles",    FY:180000,   YTD:75000,   Enc:0,        Act:13000.63,   Jan:4463.89,  Feb:0,        Mar:3868.33,  Apr:4668.41,  May:0},
+      {Dept:"Logistics & General Services", CC:"20620", Code:"436120", Desc:"Stationery",                                  FY:118000,   YTD:67500,   Enc:64229.09, Act:46294.24,   Jan:4602.5,   Feb:1352.75,  Mar:24650,    Apr:5588.55,  May:10100.44},
+
+      /* Information Technology – CC 20630 */
+      {Dept:"Information Technology", CC:"20630", Code:"172421", Desc:"Hardware & Peripherals: Asset clearing",            FY:1163000,    YTD:673000,    Enc:250468.2,  Act:120959.06, Jan:0,       Feb:244,      Mar:0,        Apr:119983.06,May:732},
+      {Dept:"Information Technology", CC:"20630", Code:"172621", Desc:"Audio and Video Equipment: Asset clearing",         FY:51000,      YTD:51000,     Enc:0,         Act:0,         Jan:0,       Feb:0,        Mar:0,        Apr:0,        May:0},
+      {Dept:"Information Technology", CC:"20630", Code:"420810", Desc:"IT Systems & Support expenses",                     FY:4610286.57, YTD:2078332.98,Enc:3453969,   Act:1088638.25,Jan:69884,   Feb:91928,    Mar:800169,   Apr:76721.95, May:49935.3},
+      {Dept:"Information Technology", CC:"20630", Code:"421200", Desc:"Operations management",                             FY:200000,     YTD:3000,      Enc:0,         Act:0,         Jan:0,       Feb:0,        Mar:0,        Apr:0,        May:0},
+      {Dept:"Information Technology", CC:"20630", Code:"426610", Desc:"Computer software licenses",                        FY:6282393.67, YTD:1555268.67,Enc:3471602.39,Act:46003.88,  Jan:20072.63,Feb:0,        Mar:4800,     Apr:14747.29, May:6383.96},
+      {Dept:"Information Technology", CC:"20630", Code:"427810", Desc:"Telephone and telefax charges",                     FY:1173999.63, YTD:489166.32, Enc:0,         Act:303391.53, Jan:0,       Feb:0,        Mar:75946.24, Apr:74157.38, May:153287.91},
+      {Dept:"Information Technology", CC:"20630", Code:"430230", Desc:"Rental – Equipment",                                FY:26424,      YTD:0,         Enc:12926.52,  Act:5740,      Jan:0,       Feb:1435,     Mar:0,        Apr:0,        May:4305},
+      {Dept:"Information Technology", CC:"20630", Code:"432205", Desc:"Computers and peripherals",                         FY:171000,     YTD:0,         Enc:26377,     Act:0,         Jan:0,       Feb:0,        Mar:0,        Apr:0,        May:0},
+      {Dept:"Information Technology", CC:"20630", Code:"436120", Desc:"Stationery",                                        FY:2000,       YTD:2000,      Enc:0,         Act:0,         Jan:0,       Feb:0,        Mar:0,        Apr:0,        May:0},
+
+      /* Human Resources – CC 20610 */
+      {Dept:"Human Resources", CC:"20610", Code:"412110", Desc:"Consolidated pay (salaries and allowances)",               FY:53940942.12,YTD:23203281.75,Enc:0,        Act:24881198.42,Jan:4556857.74,Feb:4391692.23,Mar:4289852.45,Apr:7292796,May:4350000},
+      {Dept:"Human Resources", CC:"20610", Code:"412151", Desc:"Committee pay / Board Member / Trustee fee",               FY:1080000,    YTD:450000,    Enc:0,         Act:0,          Jan:0,       Feb:0,        Mar:0,        Apr:0,        May:0},
+      {Dept:"Human Resources", CC:"20610", Code:"412162", Desc:"Bonus and ex gratia payments",                             FY:3200000,    YTD:3200000,   Enc:0,         Act:0,          Jan:0,       Feb:0,        Mar:0,        Apr:0,        May:0},
+      {Dept:"Human Resources", CC:"20610", Code:"412184", Desc:"Vacation pay (incl. cash in lieu payment)",                FY:500000,     YTD:500000,    Enc:0,         Act:331408.35,  Jan:0,       Feb:0,        Mar:0,        Apr:331408.35,May:0},
+      {Dept:"Human Resources", CC:"20610", Code:"415320", Desc:"Employee Training – Travel and Accommodation",             FY:2919148,    YTD:1516666,   Enc:91475.25,  Act:1493950.48, Jan:0,       Feb:0,        Mar:5400,     Apr:1488550.48,May:0},
+      {Dept:"Human Resources", CC:"20610", Code:"420140", Desc:"Other Consulting Services",                                FY:23160,      YTD:10000,     Enc:0,         Act:0,          Jan:0,       Feb:0,        Mar:0,        Apr:0,        May:0},
+      {Dept:"Human Resources", CC:"20610", Code:"421200", Desc:"Operations management",                                    FY:5503428,    YTD:2293095,   Enc:3486978.66,Act:370927.4,   Jan:0,       Feb:0,        Mar:190094.07,Apr:0,        May:180833.33},
+      {Dept:"Human Resources", CC:"20610", Code:"425510", Desc:"Conferences, seminars & exhibitions – Local",              FY:150000,     YTD:150000,    Enc:0,         Act:0,          Jan:0,       Feb:0,        Mar:0,        Apr:0,        May:0},
+      {Dept:"Human Resources", CC:"20610", Code:"428020", Desc:"Business Travel – Per Diem Allowances",                   FY:450000,     YTD:100000,    Enc:0,         Act:57700,      Jan:2750,    Feb:0,        Mar:0,        Apr:54950,    May:0},
+
+      /* Financial Affairs – CC 20701 */
+      {Dept:"Financial Affairs", CC:"20701", Code:"420130", Desc:"External Audit service",                                 FY:100000, YTD:50000, Enc:0, Act:0,       Jan:0,      Feb:0,      Mar:0,      Apr:0,      May:0},
+      {Dept:"Financial Affairs", CC:"20701", Code:"420140", Desc:"Other Consulting Services",                              FY:50000,  YTD:12500, Enc:0, Act:24000,   Jan:9000,   Feb:3000,   Mar:0,      Apr:0,      May:12000},
+      {Dept:"Financial Affairs", CC:"20701", Code:"425310", Desc:"Banking service charges",                                FY:12000,  YTD:5000,  Enc:0, Act:1667.09, Jan:494.55, Feb:194.99, Mar:871.5,  Apr:106.05, May:0},
+
+      /* Organization Development – CC 20400 */
+      {Dept:"Organization Development", CC:"20400", Code:"420140", Desc:"Other Consulting Services",                       FY:2390000, YTD:2180000,Enc:1754400,   Act:574369.05,Jan:0,       Feb:77137.5, Mar:497231.55,Apr:0,      May:0},
+      {Dept:"Organization Development", CC:"20400", Code:"425510", Desc:"Conferences, seminars & exhibitions – Local",     FY:32050,   YTD:32050,  Enc:16489,     Act:420,      Jan:0,       Feb:0,       Mar:420,      Apr:0,      May:0},
+      {Dept:"Organization Development", CC:"20400", Code:"428510", Desc:"Promotion announcement/advertisement exps",       FY:1551200, YTD:663700, Enc:831315,    Act:116225,   Jan:3850,    Feb:0,       Mar:25200,    Apr:0,      May:87175},
+      {Dept:"Organization Development", CC:"20400", Code:"428620", Desc:"Events – Production costs",                       FY:2130500, YTD:-77250, Enc:0,         Act:0,        Jan:0,       Feb:0,       Mar:0,        Apr:0,      May:0},
+      {Dept:"Organization Development", CC:"20400", Code:"428640", Desc:"Events – Awards, prizes & gifts",                 FY:300000,  YTD:200000, Enc:110019,    Act:9473.47,  Jan:0,       Feb:0,       Mar:3370.47,  Apr:6103,   May:0},
+      {Dept:"Organization Development", CC:"20400", Code:"429900", Desc:"Other services – not elsewhere mentioned",        FY:725000,  YTD:455000, Enc:84230,     Act:218806.45,Jan:13650,   Feb:0,       Mar:149287.5, Apr:55868.95,May:0},
+
+      /* Enablement – CC 20601 */
+      {Dept:"Enablement", CC:"20601", Code:"420140", Desc:"Other Consulting Services",                                     FY:1500000, YTD:625000, Enc:903000, Act:0, Jan:0, Feb:0, Mar:0, Apr:0, May:0},
+
+      /* Legal Affairs – CC 20300 */
+      {Dept:"Legal Affairs", CC:"20300", Code:"420140", Desc:"Other Consulting Services",                                  FY:350000,  YTD:0,       Enc:43540,  Act:0,          Jan:0, Feb:0,       Mar:0,          Apr:0,      May:0},
+      {Dept:"Legal Affairs", CC:"20300", Code:"420900", Desc:"Legal services",                                             FY:1050000, YTD:270500,  Enc:172530, Act:192226.59,  Jan:0, Feb:0,       Mar:190381.59,  Apr:525,    May:1320},
+      {Dept:"Legal Affairs", CC:"20300", Code:"427730", Desc:"Online subscriptions",                                       FY:142000,  YTD:142000,  Enc:0,      Act:96725.4,    Jan:0, Feb:0,       Mar:96725.4,    Apr:0,      May:0},
+
+      /* Strategic Initiatives – CC 20901 */
+      {Dept:"Strategic Initiatives", CC:"20901", Code:"421200", Desc:"Operations management",                              FY:1200000, YTD:1000000, Enc:829665.45, Act:218139.84, Jan:0, Feb:157500, Mar:5400, Apr:55239.84, May:0}
     );
-    ClearCollect(
-      FilteredBudget,
-      BudgetData        /* Initial display – all departments */
+
+    /* ── PROJECT BUDGET DATA ──────────────────────────────────────── */
+    ClearCollect(ProjItems,
+
+      /* Activation */
+      {Dept:"Activation", Code:"OP002500", Desc:"Zayed Sports City Asset Management",              Dir:"Sanjeet Singh Sahota", FY:53000000,   YTD:41000000,   Enc:41148396.28, Act:11851603.28, Jan:431181.77,  Feb:3185947.68, Mar:1409258,    Apr:3675083.45, May:3150132.38},
+      {Dept:"Activation", Code:"OP005200", Desc:"The UAE House of Sustainability at COP28",        Dir:"Sanjeet Singh Sahota", FY:17770000,   YTD:9700000,    Enc:628122.5,    Act:326831.21,   Jan:85887.05,   Feb:0,          Mar:160536.15,  Apr:80408.01,   May:0},
+      {Dept:"Activation", Code:"OP018200", Desc:"UAE Pavilion – COP30 Belem",                      Dir:"Sanjeet Singh Sahota", FY:1979631,    YTD:1979631,    Enc:154388.24,   Act:1563316.52,  Jan:0,          Feb:1536636.52, Mar:0,          Apr:0,          May:26680},
+      {Dept:"Activation", Code:"OP024200", Desc:"UAE Integrative Medicine Council at WHX Dubai",    Dir:"Sanjeet Singh Sahota", FY:5883947,    YTD:5883947,    Enc:0,           Act:473306.62,   Jan:0,          Feb:20000,      Mar:216430.13,  Apr:2416,       May:234460.49},
+      {Dept:"Activation", Code:"OP024300", Desc:"Al Shifaa Summit – Abu Dhabi Global Health Week", Dir:"Sanjeet Singh Sahota", FY:11836422,   YTD:11836422,   Enc:4101640.44,  Act:663329.13,   Jan:0,          Feb:0,          Mar:568910.25,  Apr:94418.88,   May:0},
+      {Dept:"Activation", Code:"SP001500", Desc:"Laborers' Uniform Enhancement",                    Dir:"Sanjeet Singh Sahota", FY:799900,     YTD:799900,     Enc:0,           Act:799900,      Jan:0,          Feb:0,          Mar:0,          Apr:799900,     May:0},
+      {Dept:"Activation", Code:"SP005300", Desc:"FBMI Initiative 'Zuleya' – Carpet Facility",       Dir:"Sanjeet Singh Sahota", FY:7000000,    YTD:3000000,    Enc:841500,      Act:2222444.22,  Jan:0,          Feb:0,          Mar:0,          Apr:2209167.36, May:13276.86},
+
+      /* Creative */
+      {Dept:"Creative", Code:"OP018500", Desc:"54 Eid Al Etihad",                                  Dir:"Rawdha Rashed Al Qubaisi", FY:6600000, YTD:6600000,  Enc:0,           Act:-1155.77,    Jan:0,          Feb:0,          Mar:-1155.77,   Apr:0,          May:0},
+
+      /* Strategic Initiatives */
+      {Dept:"Strategic Initiatives", Code:"SP001200", Desc:"Hospitality Academy Set-Up",           Dir:"Michel El Khoury", FY:190659,     YTD:190659,     Enc:0,           Act:64236.99,    Jan:2700,       Feb:61536.99,   Mar:0,          Apr:0,          May:0},
+      {Dept:"Strategic Initiatives", Code:"SP001600", Desc:"Zayed Education Foundation",           Dir:"Michel El Khoury", FY:69500000,   YTD:15287221,   Enc:22225253.64, Act:11526506.58, Jan:494243.4,   Feb:580728.91,  Mar:4430046.47, Apr:3634556.9,  May:2386930.9},
+      {Dept:"Strategic Initiatives", Code:"SP001800", Desc:"UAE National Orchestra",               Dir:"Michel El Khoury", FY:6700000,    YTD:6700000,    Enc:3317712.64,  Act:8831593.73,  Jan:5259386.36, Feb:106447.33,  Mar:1103788.75, Apr:2362242.91, May:-271.62},
+      {Dept:"Strategic Initiatives", Code:"SP005400", Desc:"Integrated Textile Circulatory Initiative", Dir:"Michel El Khoury", FY:17099326, YTD:1662390, Enc:1462256.38,  Act:572807.6,    Jan:0,          Feb:311325,     Mar:274250.73,  Apr:-12768.13,  May:0},
+      {Dept:"Strategic Initiatives", Code:"SP006600", Desc:"School Uniforms Re-design",            Dir:"Michel El Khoury", FY:2638,       YTD:2638,       Enc:940193,      Act:168253,      Jan:0,          Feb:0,          Mar:0,          Apr:168253,     May:0},
+      {Dept:"Strategic Initiatives", Code:"SP007200", Desc:"UAE Heroes Children Book Series",      Dir:"Michel El Khoury", FY:5026802,    YTD:1336631,    Enc:115295.47,   Act:389287.97,   Jan:0,          Feb:0,          Mar:152512.5,   Apr:121480,     May:115295.47},
+      {Dept:"Strategic Initiatives", Code:"SP007800", Desc:"UAE Culture Book Series",              Dir:"Michel El Khoury", FY:10998943.97,YTD:2104512.35, Enc:0,           Act:0,           Jan:0,          Feb:0,          Mar:0,          Apr:0,          May:0},
+      {Dept:"Strategic Initiatives", Code:"SP008500", Desc:"The Miracle of Saadiyat Agricultural Legacy", Dir:"Michel El Khoury", FY:590000, YTD:590000, Enc:658000,      Act:436200,      Jan:0,          Feb:332000,     Mar:21200,      Apr:83000,      May:0},
+      {Dept:"Strategic Initiatives", Code:"SP010000", Desc:"Emirati Culture Video Game",           Dir:"Michel El Khoury", FY:14700000,   YTD:3500000,    Enc:11022000,    Act:3674000,     Jan:0,          Feb:0,          Mar:3674000,    Apr:0,          May:0},
+      {Dept:"Strategic Initiatives", Code:"SP011500", Desc:"Abu Dhabi Experiential College (Deep Spring)", Dir:"Michel El Khoury", FY:16500000, YTD:2950000, Enc:4582407.24, Act:649385.49, Jan:219710.88,  Feb:4250,       Mar:231404.35,  Apr:194020.26,  May:0},
+      {Dept:"Strategic Initiatives", Code:"SP011600", Desc:"National Identity Codification Development", Dir:"Michel El Khoury", FY:384532,  YTD:384532,  Enc:384531.4,    Act:1271210,     Jan:0,          Feb:5670,       Mar:737590,     Apr:0,          May:527950},
+      {Dept:"Strategic Initiatives", Code:"SP011900", Desc:"Traditional & Complementary Medicine Interventions", Dir:"Michel El Khoury", FY:409807, YTD:409807, Enc:4794146.87, Act:3054800.04, Jan:296366.89, Feb:309354.65, Mar:624076,     Apr:1613965.5,  May:211037},
+
+      /* Enablement */
+      {Dept:"Enablement", Code:"SP023000", Desc:"Qalby Etma'an – 'Al Nas Le Nas' (TV Show) Season 9", Dir:"Eiman Alhanaey", FY:47300000, YTD:47300000, Enc:3180873, Act:18343406, Jan:0, Feb:0, Mar:15800000, Apr:7000000, May:-4456594}
     );
-    ClearCollect(
-      TransferData,
-      /* Sample transfer requests */
-      {
-        RequestRef: "TR-20260601-001",
-        RequestDate: DateValue("2026-06-01"),
-        RequestedBy: "Ahmed Al-Dawwas",
-        RequestedByEmail: "tdawwas83@gmail.com",
-        FromDepartment: "IT",
-        FromCostCenter: "CC-3002",
-        ToDepartment: "IT",
-        ToCostCenter: "CC-3001",
-        TransferAmount: 50000,
-        Justification: "Cover IT infrastructure overrun in CC-3001",
-        Priority: "Urgent",
-        Status: "Pending"
-      },
-      {
-        RequestRef: "TR-20260610-002",
-        RequestDate: DateValue("2026-06-10"),
-        RequestedBy: "Ahmed Al-Dawwas",
-        RequestedByEmail: "tdawwas83@gmail.com",
-        FromDepartment: "Finance",
-        FromCostCenter: "CC-1001",
-        ToDepartment: "Marketing",
-        ToCostCenter: "CC-5002",
-        TransferAmount: 12000,
-        Justification: "WC2026 campaign additional spend",
-        Priority: "Normal",
-        Status: "Approved"
-      },
-      {
-        RequestRef: "TR-20260615-003",
-        RequestDate: DateValue("2026-06-15"),
-        RequestedBy: "Ahmed Al-Dawwas",
-        RequestedByEmail: "tdawwas83@gmail.com",
-        FromDepartment: "HR",
-        FromCostCenter: "CC-4001",
-        ToDepartment: "Operations",
-        ToCostCenter: "CC-2001",
-        TransferAmount: 30000,
-        Justification: "Headcount reallocation Q3",
-        Priority: "Normal",
-        Status: "Rejected"
-      }
+
+    /* ── DERIVED VIEWS ─────────────────────────────────────────────── */
+    /* Department-level rollups for Corporate */
+    ClearCollect(CorpDeptSummary,
+      ForAll(
+        Distinct(CorpAccounts, Dept),
+        With({deptRows: Filter(CorpAccounts, Dept = Result)}, {
+          Dept:  Result,
+          CC:    First(deptRows).CC,
+          FY:    Sum(deptRows, FY),
+          YTD:   Sum(deptRows, YTD),
+          Enc:   Sum(deptRows, Enc),
+          Act:   Sum(deptRows, Act),
+          Accounts: CountRows(deptRows)
+        })
+      )
     );
-    ClearCollect(
-      TransferRequests,
-      TransferData
-    )
+
+    /* Department-level rollups for Projects */
+    ClearCollect(ProjDeptSummary,
+      ForAll(
+        Distinct(ProjItems, Dept),
+        With({deptRows: Filter(ProjItems, Dept = Result)}, {
+          Dept:     Result,
+          FY:       Sum(deptRows, FY),
+          YTD:      Sum(deptRows, YTD),
+          Enc:      Sum(deptRows, Enc),
+          Act:      Sum(deptRows, Act),
+          Projects: CountRows(deptRows)
+        })
+      )
+    );
+
+    /* Transfer requests log */
+    ClearCollect(TransferLog, Blank());
+
+    /* Session state */
+    Set(CurrentUser, User().FullName);
+    Set(CurrentView, "login")
