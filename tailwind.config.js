@@ -1,34 +1,35 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: [
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['"Space Mono"', 'monospace'],
+        serif: ['"Space Mono"', 'monospace'],
+        mono: ['"Space Mono"', 'monospace'],
+      },
       colors: {
-        surface: {
-          900: '#080c18',
-          800: '#0f1628',
-          700: '#161d36',
-          600: '#1e2847',
+        cream: {
+          DEFAULT: '#FAF6F0',
+          100: '#F0E8DC',
+          200: '#E4DACB',
+          300: '#D9CCBE',
+          400: '#C4B49E',
         },
-        gold: {
-          400: '#fcd34d',
-          500: '#f59e0b',
-          600: '#d97706',
+        bronze: {
+          DEFAULT: '#B5956A',
+          dark: '#8A745F',
+          light: '#C4B49E',
         },
-      },
-      animation: {
-        'pulse-live': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'fade-in': 'fadeIn 0.3s ease-in',
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0', transform: 'translateY(4px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
+        maroon: '#8B0000',
+        brown: {
+          900: '#4A3728',
+          700: '#6B4F3A',
+          500: '#8A745F',
+          300: '#9D8A76',
         },
       },
     },
   },
   plugins: [],
-};
+}

@@ -1,0 +1,42 @@
+{
+  "name": "WC 2026 Live Scores",
+  "short_name": "WC26 Live",
+  "description": "FIFA World Cup 2026 live scores & schedule in UAE time",
+  "theme_color": "#0f1628",
+  "background_color": "#080c18",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "start_url": "/?pwa=1",
+  "categories": ["sports", "news"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Live Scores",
+      "short_name": "Live",
+      "description": "See live match scores",
+      "url": "/?tab=live",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Schedule",
+      "short_name": "Schedule",
+      "description": "Upcoming match schedule",
+      "url": "/?tab=schedule",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    }
+  ]
+}

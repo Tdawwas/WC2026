@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="100%" stop-color="#080c18"/>
+    </radialGradient>
+    <radialGradient id="ball" cx="40%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="80%" stop-color="#e2e8f0"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="url(#bg)"/>
+
+  <!-- Gold ring -->
+  <circle cx="256" cy="220" r="155" fill="none" stroke="#f59e0b" stroke-width="4" opacity="0.4"/>
+
+  <!-- Soccer ball -->
+  <circle cx="256" cy="220" r="148" fill="url(#ball)"/>
+
+  <!-- Ball pentagon patches (classic black) -->
+  <!-- Center pentagon -->
+  <polygon points="256,130 295,158 281,200 231,200 217,158" fill="#1e293b"/>
+  <!-- Top-left -->
+  <polygon points="191,105 217,158 175,180 145,150 155,110" fill="#1e293b" opacity="0.6"/>
+  <!-- Top-right -->
+  <polygon points="321,105 365,110 375,150 345,180 295,158" fill="#1e293b" opacity="0.6"/>
+  <!-- Bottom-left -->
+  <polygon points="175,180 231,200 225,250 185,265 155,235" fill="#1e293b" opacity="0.6"/>
+  <!-- Bottom-right -->
+  <polygon points="345,180 345,235 315,265 275,250 281,200" fill="#1e293b" opacity="0.6"/>
+  <!-- Bottom -->
+  <polygon points="225,250 275,250 285,295 256,310 225,295" fill="#1e293b" opacity="0.6"/>
+
+  <!-- Ball outline -->
+  <circle cx="256" cy="220" r="148" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+
+  <!-- Trophy cup shape at bottom -->
+  <path d="M200,380 L210,420 L302,420 L312,380 Z" fill="#f59e0b" filter="url(#glow)"/>
+  <rect x="236" y="420" width="40" height="16" rx="4" fill="#f59e0b"/>
+  <rect x="216" y="436" width="80" height="10" rx="3" fill="#fcd34d"/>
+  <!-- Trophy handles -->
+  <path d="M200,380 Q172,370 175,350 Q178,335 200,340" fill="none" stroke="#f59e0b" stroke-width="8" stroke-linecap="round"/>
+  <path d="M312,380 Q340,370 337,350 Q334,335 312,340" fill="none" stroke="#f59e0b" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- "2026" text -->
+  <text x="256" y="490" font-family="Arial Black, Arial, sans-serif" font-size="36" font-weight="900" fill="#fcd34d" text-anchor="middle" letter-spacing="4">2026</text>
+</svg>
