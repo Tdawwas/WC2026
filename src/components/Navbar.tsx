@@ -16,9 +16,12 @@ function scrollTo(px: number) {
 
 export default function Navbar({ entranceComplete }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [dlHovered, setDlHovered] = useState(false)
+  const [portalHovered, setPortalHovered] = useState(false)
   const [aboutHovered, setAboutHovered] = useState(false)
-  const [metricsHovered, setMetricsHovered] = useState(false)
+  const [impactHovered, setImpactHovered] = useState(false)
+
+  const pillBg = 'rgba(240, 232, 220, 0.88)'
+  const pillBgHover = 'rgba(229, 218, 203, 0.95)'
 
   return (
     <motion.nav
@@ -27,32 +30,30 @@ export default function Navbar({ entranceComplete }: NavbarProps) {
       transition={{ duration: 0.8 }}
       initial={{ opacity: 0 }}
     >
-      {/* ── DESKTOP NAV ── */}
+      {/* ── DESKTOP ── */}
       <div className="hidden sm:flex items-center justify-between w-full">
-        {/* Left group */}
         <div className="flex items-center gap-2">
           {/* Logo pill */}
           <motion.div
             className="flex items-center gap-2 h-12 px-5 cursor-pointer select-none"
-            style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', borderRadius: 14 }}
-            whileHover={{ scale: 1.02, background: 'rgba(255,255,255,0.22)' }}
+            style={{ background: pillBg, backdropFilter: 'blur(12px)', borderRadius: 14 }}
+            whileHover={{ background: pillBgHover, scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <SynapseXLogo size={18} className="text-white" />
-            <span className="text-white text-[16px] font-medium tracking-tight">SynapseX</span>
+            <SynapseXLogo size={18} className="text-maroon" />
+            <span className="text-brown-900 text-[15px] font-medium tracking-tight">Budget AI</span>
           </motion.div>
 
           {/* Expanding menu pill */}
           <motion.div
             className="relative h-12 overflow-hidden flex items-center"
-            style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', borderRadius: 14 }}
-            animate={{ width: menuOpen ? 290 : 48 }}
+            style={{ background: pillBg, backdropFilter: 'blur(12px)', borderRadius: 14 }}
+            animate={{ width: menuOpen ? 270 : 48 }}
             transition={menuSpring}
           >
-            {/* Hamburger button */}
             <motion.button
               className="flex-shrink-0 flex items-center justify-center cursor-pointer"
-              style={{ background: menuOpen ? 'rgba(255,255,255,0.1)' : 'transparent' }}
+              style={{ background: menuOpen ? 'rgba(74,55,40,0.08)' : 'transparent' }}
               animate={{
                 width: menuOpen ? 36 : 48,
                 height: menuOpen ? 36 : 48,
@@ -61,12 +62,11 @@ export default function Navbar({ entranceComplete }: NavbarProps) {
               }}
               transition={menuSpring}
               onClick={() => setMenuOpen(!menuOpen)}
-              whileHover={{ background: menuOpen ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)' }}
+              whileHover={{ background: 'rgba(74,55,40,0.12)' }}
             >
-              <SquashHamburger isOpen={menuOpen} />
+              <SquashHamburger isOpen={menuOpen} color="#4A3728" />
             </motion.button>
 
-            {/* Nav links */}
             <AnimatePresence>
               {menuOpen && (
                 <motion.div
@@ -77,7 +77,7 @@ export default function Navbar({ entranceComplete }: NavbarProps) {
                   transition={{ duration: 0.2 }}
                 >
                   <button
-                    className="text-[16px] font-normal text-white/85 hover:text-white transition-colors"
+                    className="text-[15px] font-normal text-brown-700 hover:text-brown-900 transition-colors"
                     onMouseEnter={() => setAboutHovered(true)}
                     onMouseLeave={() => setAboutHovered(false)}
                     onClick={() => { scrollTo(window.innerHeight); setMenuOpen(false) }}
@@ -85,12 +85,12 @@ export default function Navbar({ entranceComplete }: NavbarProps) {
                     <ScrambleText text="About" isHovered={aboutHovered} />
                   </button>
                   <button
-                    className="text-[16px] font-normal text-white/85 hover:text-white transition-colors"
-                    onMouseEnter={() => setMetricsHovered(true)}
-                    onMouseLeave={() => setMetricsHovered(false)}
-                    onClick={() => { scrollTo(window.innerHeight * 2); setMenuOpen(false) }}
+                    className="text-[15px] font-normal text-brown-700 hover:text-brown-900 transition-colors"
+                    onMouseEnter={() => setImpactHovered(true)}
+                    onMouseLeave={() => setImpactHovered(false)}
+                    onClick={() => { scrollTo(window.innerHeight * 2.5); setMenuOpen(false) }}
                   >
-                    <ScrambleText text="Metrics" isHovered={metricsHovered} />
+                    <ScrambleText text="Impact" isHovered={impactHovered} />
                   </button>
                 </motion.div>
               )}
@@ -98,54 +98,47 @@ export default function Navbar({ entranceComplete }: NavbarProps) {
           </motion.div>
         </div>
 
-        {/* Download button */}
+        {/* CTA button */}
         <motion.button
-          className="flex items-center gap-2 h-12 px-6 bg-white rounded-full text-black text-[15px] font-medium cursor-pointer select-none"
-          whileHover={{ scale: 1.03, background: '#e2e2e6' }}
+          className="flex items-center gap-2 h-12 px-6 rounded-full text-cream text-[14px] font-medium cursor-pointer select-none"
+          style={{ background: '#8B0000' }}
+          whileHover={{ scale: 1.03, background: '#6B0000' }}
           whileTap={{ scale: 0.97 }}
-          onMouseEnter={() => setDlHovered(true)}
-          onMouseLeave={() => setDlHovered(false)}
+          onMouseEnter={() => setPortalHovered(true)}
+          onMouseLeave={() => setPortalHovered(false)}
         >
-          <i className="bi bi-apple text-[18px]" />
-          <ScrambleText text="Download" isHovered={dlHovered} />
+          <i className="bi bi-grid text-[16px]" />
+          <ScrambleText text="Open Portal" isHovered={portalHovered} />
         </motion.button>
       </div>
 
-      {/* ── MOBILE NAV ── */}
+      {/* ── MOBILE ── */}
       <div className="flex sm:hidden items-center justify-between w-full">
-        {/* Logo pill (hides when menu open) */}
         <motion.div
           className="flex items-center gap-2 h-9 px-3.5 overflow-hidden cursor-pointer"
-          style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', borderRadius: 10 }}
-          animate={{ width: menuOpen ? 0 : 'auto', opacity: menuOpen ? 0 : 1, paddingLeft: menuOpen ? 0 : undefined, paddingRight: menuOpen ? 0 : undefined }}
+          style={{ background: pillBg, backdropFilter: 'blur(12px)', borderRadius: 10 }}
+          animate={{ width: menuOpen ? 0 : 'auto', opacity: menuOpen ? 0 : 1 }}
           transition={menuSpring}
         >
-          <SynapseXLogo size={14} className="text-white flex-shrink-0" />
-          <span className="text-white text-[13px] font-medium tracking-tight whitespace-nowrap">SynapseX</span>
+          <SynapseXLogo size={14} className="text-maroon flex-shrink-0" />
+          <span className="text-brown-900 text-[13px] font-medium tracking-tight whitespace-nowrap">Budget AI</span>
         </motion.div>
 
-        {/* Menu capsule */}
         <motion.div
           className="relative h-9 overflow-hidden flex items-center"
-          style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', borderRadius: 10 }}
+          style={{ background: pillBg, backdropFilter: 'blur(12px)', borderRadius: 10 }}
           animate={{ width: menuOpen ? '100%' : 36 }}
           transition={menuSpring}
         >
           <motion.button
             className="flex-shrink-0 flex items-center justify-center"
-            style={{ background: menuOpen ? 'rgba(255,255,255,0.1)' : 'transparent' }}
-            animate={{
-              width: menuOpen ? 30 : 36,
-              height: menuOpen ? 30 : 36,
-              borderRadius: menuOpen ? 8 : 10,
-              marginLeft: menuOpen ? 4 : 0,
-            }}
+            style={{ background: menuOpen ? 'rgba(74,55,40,0.08)' : 'transparent' }}
+            animate={{ width: menuOpen ? 30 : 36, height: menuOpen ? 30 : 36, borderRadius: menuOpen ? 8 : 10, marginLeft: menuOpen ? 4 : 0 }}
             transition={menuSpring}
             onClick={() => setMenuOpen(!menuOpen)}
           >
-            <SquashHamburger isOpen={menuOpen} isMobile />
+            <SquashHamburger isOpen={menuOpen} isMobile color="#4A3728" />
           </motion.button>
-
           <AnimatePresence>
             {menuOpen && (
               <motion.div
@@ -155,31 +148,21 @@ export default function Navbar({ entranceComplete }: NavbarProps) {
                 exit={{ opacity: 0, x: 10 }}
                 transition={{ duration: 0.18 }}
               >
-                <button
-                  className="text-[13px] font-normal text-white/85"
-                  onClick={() => { scrollTo(window.innerHeight); setMenuOpen(false) }}
-                >
-                  About
-                </button>
-                <button
-                  className="text-[13px] font-normal text-white/85"
-                  onClick={() => { scrollTo(window.innerHeight * 2); setMenuOpen(false) }}
-                >
-                  Metrics
-                </button>
+                <button className="text-[13px] text-brown-700" onClick={() => { scrollTo(window.innerHeight); setMenuOpen(false) }}>About</button>
+                <button className="text-[13px] text-brown-700" onClick={() => { scrollTo(window.innerHeight * 2.5); setMenuOpen(false) }}>Impact</button>
               </motion.div>
             )}
           </AnimatePresence>
         </motion.div>
 
-        {/* Download button */}
         <motion.button
-          className="flex items-center gap-1.5 h-9 px-3.5 bg-white rounded-full text-black text-[13px] font-medium cursor-pointer select-none"
-          whileHover={{ scale: 1.03, background: '#e2e2e6' }}
+          className="flex items-center gap-1.5 h-9 px-3.5 rounded-full text-cream text-[12px] font-medium"
+          style={{ background: '#8B0000' }}
+          whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
         >
-          <i className="bi bi-apple text-[15px]" />
-          <span>Download</span>
+          <i className="bi bi-grid text-[13px]" />
+          <span>Portal</span>
         </motion.button>
       </div>
     </motion.nav>

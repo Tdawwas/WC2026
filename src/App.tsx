@@ -5,6 +5,7 @@ import CinematicSection from './components/CinematicSection'
 import MetricsSection from './components/MetricsSection'
 import TechSection from './components/TechSection'
 import ArchitectureSection from './components/ArchitectureSection'
+import NextStepsSection from './components/NextStepsSection'
 import Footer from './components/Footer'
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
       <MetricsSection />
       <TechSection />
       <ArchitectureSection />
+      <NextStepsSection />
       <Footer />
     </div>
   )
