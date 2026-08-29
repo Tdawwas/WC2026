@@ -1,0 +1,1201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My Classes — Instructor Tracker</title>
+<meta name="description" content="Offline tracker for classes, studios, schedules and earnings.">
+<meta name="theme-color" content="#0f1628">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="My Classes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root{
+  --bg:#0b1020; --bg2:#121a30; --card:#161f3a; --card2:#1d2848;
+  --line:#27324f; --text:#eef2ff; --muted:#9aa8cc;
+  --accent:#f5b62c; --accent-ink:#2b1d00;
+  --ok:#34d399; --warn:#fbbf24; --bad:#f87171; --info:#60a5fa;
+  --radius:16px;
+}
+html[data-theme="light"]{
+  --bg:#f4f6fc; --bg2:#ffffff; --card:#ffffff; --card2:#f1f4fb;
+  --line:#dde3f0; --text:#131a2b; --muted:#5d6a86;
+  --accent:#e09b00; --accent-ink:#ffffff;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--text);
+  font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  padding-bottom:calc(78px + env(safe-area-inset-bottom));
+  overscroll-behavior-y:contain;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:var(--info)}
+.wrap{max-width:640px;margin:0 auto;padding:0 14px}
+
+/* ---------- header ---------- */
+header.top{
+  position:sticky;top:0;z-index:30;background:var(--bg);
+  padding-top:env(safe-area-inset-top);
+  border-bottom:1px solid var(--line);
+}
+.top-row{display:flex;align-items:center;gap:10px;padding:12px 14px;max-width:640px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:17px}
+.brand .dot{width:26px;height:26px;border-radius:9px;background:var(--accent);color:var(--accent-ink);
+  display:grid;place-items:center;font-size:14px;font-weight:800}
+.top-actions{margin-left:auto;display:flex;gap:6px}
+.icon-btn{width:36px;height:36px;border-radius:11px;background:var(--card);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:16px}
+.icon-btn:active{transform:scale(.94)}
+
+/* ---------- cards / layout ---------- */
+.section{margin:16px 0}
+.section-title{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:13px;
+  text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700}
+.section-title .count{background:var(--card2);border:1px solid var(--line);border-radius:999px;
+  padding:1px 8px;font-size:11px;letter-spacing:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:var(--radius);
+  padding:26px 16px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--text);margin-bottom:4px}
+
+/* ---------- class row ---------- */
+.cls{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px;margin-bottom:10px;position:relative;overflow:hidden}
+.cls:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--bar,var(--accent))}
+.cls.done{opacity:.72}
+.cls.cancelled{opacity:.5}
+.cls-head{display:flex;gap:10px;align-items:flex-start}
+.cls-time{min-width:60px;text-align:center}
+.cls-time .t{font-weight:800;font-size:15px;letter-spacing:.2px}
+.cls-time .d{font-size:11px;color:var(--muted);margin-top:2px}
+.cls-main{flex:1;min-width:0}
+.cls-title{font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cls.cancelled .cls-title{text-decoration:line-through}
+.cls-sub{font-size:12.5px;color:var(--muted);margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 10px}
+.cls-pay{text-align:right;font-weight:800;font-size:14px;white-space:nowrap}
+.cls-pay .lbl{display:block;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.cls-actions{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--card2);border-radius:10px;padding:6px 10px;
+  font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:5px}
+.chip:active{transform:scale(.96)}
+.chip.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip.danger{color:var(--bad)}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;
+  border-radius:999px;padding:2px 8px;border:1px solid var(--line);background:var(--card2)}
+.tag.ok{color:var(--ok)} .tag.warn{color:var(--warn)} .tag.bad{color:var(--bad)} .tag.info{color:var(--info)}
+
+/* ---------- stats ---------- */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:13px}
+.stat .k{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+.stat .v{font-size:21px;font-weight:800;margin-top:5px;letter-spacing:-.3px}
+.stat .s{font-size:12px;color:var(--muted);margin-top:2px}
+.bar{height:7px;border-radius:99px;background:var(--card2);overflow:hidden;margin-top:9px}
+.bar > i{display:block;height:100%;background:var(--accent)}
+
+/* ---------- studio row ---------- */
+.studio{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);padding:12px;margin-bottom:10px}
+.swatch{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-weight:800;color:#0b1020;font-size:15px}
+
+/* ---------- forms ---------- */
+label.f{display:block;margin-bottom:12px}
+label.f > span{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;
+  text-transform:uppercase;letter-spacing:.06em}
+input,select,textarea{
+  width:100%;background:var(--card2);border:1px solid var(--line);border-radius:12px;
+  padding:11px 12px;outline:none;appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{min-height:70px;resize:vertical}
+input[type=checkbox]{width:24px;height:24px;flex:0 0 auto;padding:0;appearance:auto;-webkit-appearance:checkbox;
+  accent-color:var(--accent);background:none;border:0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:12px}
+.switch input{width:auto}
+.hint{font-size:12px;color:var(--muted);margin:-6px 0 12px}
+.btn{display:block;width:100%;text-align:center;border-radius:13px;padding:13px;font-weight:800;font-size:15px}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:var(--card2);border:1px solid var(--line)}
+.btn.danger{background:transparent;border:1px solid var(--line);color:var(--bad)}
+.btn+.btn{margin-top:9px}
+
+/* ---------- sheet / modal ---------- */
+.sheet-bg{position:fixed;inset:0;background:rgba(3,6,16,.62);backdrop-filter:blur(3px);
+  z-index:60;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg2);width:100%;max-width:640px;max-height:92vh;overflow:auto;
+  border-radius:22px 22px 0 0;border:1px solid var(--line);border-bottom:0;
+  padding:8px 16px calc(22px + env(safe-area-inset-bottom));animation:up .22s ease}
+@keyframes up{from{transform:translateY(26px);opacity:.4}to{transform:none;opacity:1}}
+.grip{width:40px;height:4px;border-radius:9px;background:var(--line);margin:6px auto 12px}
+.sheet h2{margin:0 0 14px;font-size:19px}
+.sheet-close{position:absolute;right:16px}
+
+/* ---------- tabs ---------- */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--bg2);
+  border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs-in{display:flex;max-width:640px;margin:0 auto}
+.tab{flex:1;padding:9px 2px 8px;text-align:center;color:var(--muted);font-size:10.5px;font-weight:700}
+.tab .ic{display:block;font-size:19px;margin-bottom:1px;line-height:1.2}
+.tab.on{color:var(--accent)}
+.fab{position:fixed;right:16px;bottom:calc(88px + env(safe-area-inset-bottom));z-index:41;
+  width:56px;height:56px;border-radius:19px;background:var(--accent);color:var(--accent-ink);
+  font-size:28px;font-weight:300;display:grid;place-items:center;box-shadow:0 8px 22px rgba(0,0,0,.35)}
+.fab:active{transform:scale(.94)}
+
+/* ---------- misc ---------- */
+.seg{display:flex;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:14px}
+.seg button{flex:1;padding:8px 4px;border-radius:9px;font-size:13px;font-weight:700;color:var(--muted)}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom));
+  background:var(--card2);border:1px solid var(--line);color:var(--text);padding:10px 16px;border-radius:13px;
+  z-index:80;font-size:13.5px;font-weight:600;box-shadow:0 8px 20px rgba(0,0,0,.3)}
+.banner{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px;
+  font-size:13px;color:var(--muted);margin-bottom:12px}
+.banner b{color:var(--text)}
+.list-day{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.08em;margin:16px 0 8px}
+.money{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand"><span class="dot">◉</span><span id="brandName">My Classes</span></div>
+    <div class="top-actions">
+      <button class="icon-btn" id="btnTheme" title="Theme">◐</button>
+      <button class="icon-btn" id="btnSettings" title="Settings">⚙</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="view"></main>
+
+<button class="fab" id="fab" aria-label="Add class">+</button>
+
+<nav class="tabs">
+  <div class="tabs-in">
+    <button class="tab" data-tab="today"><span class="ic">☀</span>Today</button>
+    <button class="tab" data-tab="schedule"><span class="ic">🗓</span>Schedule</button>
+    <button class="tab" data-tab="studios"><span class="ic">🏛</span>Studios</button>
+    <button class="tab" data-tab="money"><span class="ic">💰</span>Earnings</button>
+  </div>
+</nav>
+
+<div id="modal"></div>
+
+<script>
+"use strict";
+
+/* =========================================================================
+   Instructor Class Tracker — 100% offline.
+   All data lives in this browser (localStorage). Nothing is ever uploaded.
+   ========================================================================= */
+
+const KEY = "instructor.tracker.v1";
+const CURRENCIES = ["AED","SAR","EGP","USD","EUR","GBP","JOD","KWD","QAR","OMR","BHD","TRY","INR"];
+const PALETTE = ["#f5b62c","#34d399","#60a5fa","#f472b6","#a78bfa","#fb923c","#22d3ee","#facc15"];
+
+/* ---------- state ---------- */
+function blankState(){
+  return {
+    settings:{
+      name:"My Classes", currency:"AED", theme:"dark",
+      defaultReminder:60,          // minutes before class
+      defaultDuration:60,
+      goal:0,                      // optional monthly earnings goal
+      phone:"", email:"",          // where "send" shortcuts go
+      notifyOn:false
+    },
+    studios:[],
+    classes:[],
+    notified:{}                    // classId -> true (so a reminder fires once)
+  };
+}
+let state = loadState();
+let ui = { tab:"today", monthCursor:startOfMonth(new Date()), moneyRange:"month" };
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw){
+      const s = JSON.parse(raw);
+      const base = blankState();
+      return Object.assign(base, s, { settings: Object.assign(base.settings, s.settings||{}) });
+    }
+  }catch(e){ console.warn("load failed", e); }
+  return blankState();
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch(e){ toast("Could not save — storage full?"); }
+}
+
+/* ---------- tiny helpers ---------- */
+const $ = (sel, root) => (root||document).querySelector(sel);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n).padStart(2,"0");
+
+function isoDate(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+function todayISO(){ return isoDate(new Date()); }
+function parseISO(iso){ const p = String(iso).split("-").map(Number); return new Date(p[0], p[1]-1, p[2]); }
+function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+function addDays(d,n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
+function startOfWeek(d){ const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - x.getDay()); return x; } // Sunday
+function classStart(c){
+  const d = parseISO(c.date), t = String(c.start||"00:00").split(":");
+  d.setHours(Number(t[0])||0, Number(t[1])||0, 0, 0);
+  return d;
+}
+function classEnd(c){ return new Date(classStart(c).getTime() + (Number(c.duration)||0)*60000); }
+function hhmm(t){
+  const p = String(t||"00:00").split(":"); let h = Number(p[0])||0; const m = p[1]||"00";
+  const ap = h>=12 ? "PM":"AM"; h = h%12; if(h===0) h=12;
+  return h+":"+m+" "+ap;
+}
+function dayLabel(iso){
+  const d = parseISO(iso), t = todayISO();
+  if(iso===t) return "Today";
+  if(iso===isoDate(addDays(new Date(),1))) return "Tomorrow";
+  if(iso===isoDate(addDays(new Date(),-1))) return "Yesterday";
+  return d.toLocaleDateString(undefined,{weekday:"short", day:"numeric", month:"short"});
+}
+function shortDate(iso){ return parseISO(iso).toLocaleDateString(undefined,{day:"numeric", month:"short"}); }
+function money(n){
+  const v = Math.round((Number(n)||0)*100)/100;
+  return state.settings.currency + " " + v.toLocaleString(undefined,{minimumFractionDigits: v%1?2:0, maximumFractionDigits:2});
+}
+function plural(n, word){ return n + " " + word + (n===1 ? "" : (/(s|x|ch|sh)$/.test(word) ? "es" : "s")); }
+function hoursText(mins){
+  const m = Math.round(Number(mins)||0);
+  const h = Math.floor(m/60), r = m%60;
+  return (h?h+"h":"") + (r?(h?" ":"")+r+"m":(h?"":"0m"));
+}
+function toast(msg){
+  const el = document.createElement("div");
+  el.className = "toast"; el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 2300);
+}
+
+/* ---------- domain ---------- */
+function studio(id){ return state.studios.find(s=>s.id===id) || null; }
+function studioName(id){ const s = studio(id); return s ? s.name : "No studio"; }
+function studioColor(id){ const s = studio(id); return s ? s.color : "#7c8db5"; }
+
+/** What a class is worth, from its own rate or its studio's default. */
+function classValue(c){
+  if(c.status==="cancelled") return c.paidWhenCancelled ? (Number(c.earned)||0) : 0;
+  if(c.status==="done" && c.earned!=null && c.earned!=="") return Number(c.earned)||0;
+  const s = studio(c.studioId);
+  const payType = c.payType || (s && s.payType) || "per_class";
+  const rate = (c.rate!=null && c.rate!=="") ? Number(c.rate) : (s ? Number(s.rate)||0 : 0);
+  return payType==="per_hour" ? rate * ((Number(c.duration)||0)/60) : rate;
+}
+function sortClasses(list){
+  return list.slice().sort((a,b)=> (a.date+a.start).localeCompare(b.date+b.start));
+}
+function classesBetween(fromISO, toISO){
+  return sortClasses(state.classes.filter(c => c.date>=fromISO && c.date<=toISO));
+}
+function classesOn(iso){ return sortClasses(state.classes.filter(c=>c.date===iso)); }
+
+function totals(list){
+  const t = { earned:0, expected:0, unpaid:0, minutes:0, done:0, upcoming:0, cancelled:0 };
+  list.forEach(c=>{
+    const v = classValue(c);
+    if(c.status==="done"){
+      t.done++; t.earned += v; t.minutes += Number(c.duration)||0;
+      if(!c.paid) t.unpaid += v;
+    }else if(c.status==="cancelled"){
+      t.cancelled++; t.earned += v; if(v && !c.paid) t.unpaid += v;
+    }else{
+      t.upcoming++; t.expected += v;
+    }
+  });
+  return t;
+}
+
+/* =========================================================================
+   Rendering
+   ========================================================================= */
+function render(){
+  document.documentElement.dataset.theme = state.settings.theme==="light" ? "light" : "dark";
+  $("#brandName").textContent = state.settings.name || "My Classes";
+  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.tab===ui.tab));
+  const v = $("#view");
+  if(ui.tab==="today") v.innerHTML = viewToday();
+  else if(ui.tab==="schedule") v.innerHTML = viewSchedule();
+  else if(ui.tab==="studios") v.innerHTML = viewStudios();
+  else v.innerHTML = viewMoney();
+  save();
+}
+
+/** One class card. */
+function classCard(c, opts){
+  opts = opts || {};
+  const s = studio(c.studioId);
+  const v = classValue(c);
+  const now = new Date();
+  const running = c.status==="scheduled" && classStart(c)<=now && classEnd(c)>=now;
+  const late = c.status==="scheduled" && classEnd(c) < now;
+
+  let badge = "";
+  if(c.status==="done") badge = '<span class="tag ok">✓ Finished</span>';
+  else if(c.status==="cancelled") badge = '<span class="tag bad">Cancelled</span>';
+  else if(running) badge = '<span class="tag info">● Now</span>';
+  else if(late) badge = '<span class="tag warn">Needs closing</span>';
+  if(c.status==="done") badge += c.paid ? ' <span class="tag ok">Paid</span>' : ' <span class="tag warn">Unpaid</span>';
+  if(c.seriesId) badge += ' <span class="tag">⟳ Weekly</span>';
+
+  const sub = [];
+  sub.push("🏛 " + esc(studioName(c.studioId)));
+  sub.push("⏱ " + hoursText(c.duration));
+  if(c.attendees) sub.push("👥 " + c.attendees);
+  if(opts.showDate) sub.push("📅 " + esc(shortDate(c.date)));
+
+  // Two taps stay on the card; everything rarer lives behind "More".
+  const actions = [];
+  if(c.status==="scheduled"){
+    actions.push('<button class="chip primary" data-act="finish" data-id="'+c.id+'">✓ Finish</button>');
+    actions.push('<button class="chip" data-act="edit" data-id="'+c.id+'">✎ Edit</button>');
+  }else if(c.status==="done"){
+    actions.push('<button class="chip'+(c.paid?"":" primary")+'" data-act="paid" data-id="'+c.id+'">'+(c.paid?"↺ Mark unpaid":"💵 Mark paid")+'</button>');
+    actions.push('<button class="chip" data-act="finish" data-id="'+c.id+'">✎ Amount</button>');
+  }else{
+    actions.push('<button class="chip" data-act="reopen" data-id="'+c.id+'">↺ Restore</button>');
+  }
+  actions.push('<button class="chip" data-act="more" data-id="'+c.id+'">⋯ More</button>');
+
+  return ''
+  + '<article class="cls '+c.status+'" style="--bar:'+studioColor(c.studioId)+'">'
+  +   '<div class="cls-head">'
+  +     '<div class="cls-time"><div class="t">'+esc(hhmm(c.start))+'</div><div class="d">'+esc(hoursText(c.duration))+'</div></div>'
+  +     '<div class="cls-main">'
+  +       '<div class="cls-title">'+esc(c.title || (s?s.name:"Class"))+'</div>'
+  +       '<div class="cls-sub">'+sub.map(esc).map(x=>'<span>'+x+'</span>').join("")+'</div>'
+  +       (badge ? '<div class="cls-sub" style="margin-top:6px">'+badge+'</div>' : "")
+  +       (c.notes ? '<div class="cls-sub" style="margin-top:6px">📝 '+esc(c.notes)+'</div>' : "")
+  +     '</div>'
+  +     '<div class="cls-pay"><span class="lbl">'+(c.status==="done"?"earned":"worth")+'</span><span class="money">'+esc(money(v))+'</span></div>'
+  +   '</div>'
+  +   '<div class="cls-actions">'+actions.join("")+'</div>'
+  + '</article>';
+}
+
+function viewToday(){
+  const t = todayISO();
+  const list = classesOn(t);
+  const week = classesBetween(isoDate(startOfWeek(new Date())), isoDate(addDays(startOfWeek(new Date()),6)));
+  const wt = totals(week);
+  const dt = totals(list);
+  const openPast = sortClasses(state.classes.filter(c => c.status==="scheduled" && classEnd(c) < new Date()));
+
+  let html = "";
+  if(!state.studios.length){
+    html += '<div class="banner" style="margin-top:14px">'
+         +  '<b>Welcome 👋</b><br>Start by adding the studios you teach at — then every class you add picks up that studio’s rate automatically.'
+         +  '<div style="margin-top:10px"><button class="chip primary" data-act="new-studio">+ Add my first studio</button></div></div>';
+  }
+
+  html += '<div class="section"><div class="section-title">Today · '+esc(parseISO(t).toLocaleDateString(undefined,{weekday:"long", day:"numeric", month:"long"}))+'</div>'
+       +  '<div class="stats">'
+       +    '<div class="stat"><div class="k">Classes today</div><div class="v">'+list.length+'</div><div class="s">'+dt.done+' finished · '+dt.upcoming+' to go</div></div>'
+       +    '<div class="stat"><div class="k">Earned today</div><div class="v money">'+esc(money(dt.earned))+'</div><div class="s">'+esc(money(dt.expected))+' still to come</div></div>'
+       +  '</div></div>';
+
+  if(openPast.length){
+    html += '<div class="section"><div class="section-title">Waiting to be closed <span class="count">'+openPast.length+'</span></div>'
+         +  openPast.slice(0,5).map(c=>classCard(c,{showDate:true})).join("") + '</div>';
+  }
+
+  html += '<div class="section"><div class="section-title">Schedule <span class="count">'+list.length+'</span></div>';
+  html += list.length ? list.map(c=>classCard(c)).join("")
+    : '<div class="empty"><b>No classes today</b>Enjoy the rest day, or tap + to add one.</div>';
+  html += '</div>';
+
+  const upcoming = sortClasses(state.classes.filter(c => c.status==="scheduled" && c.date>t)).slice(0,4);
+  if(upcoming.length){
+    html += '<div class="section"><div class="section-title">Coming up</div>'
+         +  upcoming.map(c=>classCard(c,{showDate:true})).join("") + '</div>';
+  }
+
+  html += '<div class="section"><div class="section-title">This week</div>'
+       +  '<div class="stats">'
+       +   '<div class="stat"><div class="k">Earned</div><div class="v money">'+esc(money(wt.earned))+'</div><div class="s">'+plural(wt.done,"class")+' · '+hoursText(wt.minutes)+'</div></div>'
+       +   '<div class="stat"><div class="k">Expected</div><div class="v money">'+esc(money(wt.expected))+'</div><div class="s">'+wt.upcoming+' still scheduled</div></div>'
+       +  '</div></div>';
+  return html;
+}
+
+function viewSchedule(){
+  const cur = ui.monthCursor;
+  const first = startOfMonth(cur);
+  const last = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
+  const list = classesBetween(isoDate(first), isoDate(last));
+  const t = totals(list);
+
+  let html = ''
+  + '<div class="section" style="display:flex;align-items:center;gap:10px">'
+  +   '<button class="icon-btn" data-act="month" data-step="-1">‹</button>'
+  +   '<div style="flex:1;text-align:center;font-weight:800;font-size:16px">'
+  +      esc(first.toLocaleDateString(undefined,{month:"long", year:"numeric"}))+'</div>'
+  +   '<button class="icon-btn" data-act="month" data-step="1">›</button>'
+  + '</div>'
+  + '<div class="stats">'
+  +   '<div class="stat"><div class="k">Classes</div><div class="v">'+list.length+'</div><div class="s">'+t.done+' finished · '+t.upcoming+' upcoming</div></div>'
+  +   '<div class="stat"><div class="k">Earned / expected</div><div class="v money" style="font-size:17px">'+esc(money(t.earned))+'</div><div class="s">+ '+esc(money(t.expected))+' expected</div></div>'
+  + '</div>'
+  + '<div class="section"><button class="btn ghost" data-act="export-ics-month">📅 Send this month to my phone calendar</button></div>';
+
+  if(!list.length){
+    return html + '<div class="empty"><b>Nothing scheduled</b>Tap + to add a class to '+esc(first.toLocaleDateString(undefined,{month:"long"}))+'.</div>';
+  }
+  let day = "";
+  list.forEach(c=>{
+    if(c.date!==day){ day = c.date; html += '<div class="list-day">'+esc(dayLabel(day))+'</div>'; }
+    html += classCard(c);
+  });
+  return html;
+}
+
+function viewStudios(){
+  let html = '<div class="section"><div class="section-title">Studios <span class="count">'+state.studios.length+'</span></div>';
+  if(!state.studios.length){
+    html += '<div class="empty"><b>No studios yet</b>Add each place you teach at with its pay rate.</div>';
+  }else{
+    const t = todayISO();
+    html += state.studios.map(s=>{
+      const mine = state.classes.filter(c=>c.studioId===s.id);
+      const done = mine.filter(c=>c.status==="done");
+      const owed = done.filter(c=>!c.paid).reduce((a,c)=>a+classValue(c),0);
+      const next = sortClasses(mine.filter(c=>c.status==="scheduled" && c.date>=t))[0];
+      return '<div class="studio">'
+        + '<div class="swatch" style="background:'+s.color+'">'+esc((s.name||"?").slice(0,1).toUpperCase())+'</div>'
+        + '<div style="flex:1;min-width:0">'
+        +   '<div style="font-weight:700">'+esc(s.name)+'</div>'
+        +   '<div class="cls-sub"><span>'+esc(money(s.rate))+(s.payType==="per_hour"?" / hour":" / class")+'</span>'
+        +   '<span>'+plural(done.length,"class")+' finished</span>'
+        +   (owed?'<span style="color:var(--warn)">'+esc(money(owed))+' unpaid</span>':"")+'</div>'
+        +   (next?'<div class="cls-sub"><span>Next: '+esc(dayLabel(next.date))+" "+esc(hhmm(next.start))+'</span></div>':"")
+        + '</div>'
+        + '<button class="chip" data-act="edit-studio" data-id="'+s.id+'">✎</button>'
+      + '</div>';
+    }).join("");
+  }
+  html += '<button class="btn primary" data-act="new-studio" style="margin-top:6px">+ Add studio</button></div>';
+  return html;
+}
+
+function viewMoney(){
+  const now = new Date();
+  let from, to, label;
+  if(ui.moneyRange==="week"){
+    from = startOfWeek(now); to = addDays(from,6); label = "This week";
+  }else if(ui.moneyRange==="month"){
+    from = startOfMonth(now); to = new Date(now.getFullYear(), now.getMonth()+1, 0); label = "This month";
+  }else{
+    from = new Date(now.getFullYear(),0,1); to = new Date(now.getFullYear(),11,31); label = "This year";
+  }
+  const list = classesBetween(isoDate(from), isoDate(to));
+  const t = totals(list);
+  const goal = Number(state.settings.goal)||0;
+  const pct = goal ? Math.min(100, Math.round(t.earned/goal*100)) : 0;
+
+  let html = '<div class="seg" style="margin-top:14px">'
+    + ["week","month","year"].map(r=>'<button data-act="range" data-range="'+r+'" class="'+(ui.moneyRange===r?"on":"")+'">'
+        + (r==="week"?"Week":r==="month"?"Month":"Year")+'</button>').join("")
+    + '</div>';
+
+  html += '<div class="stats">'
+    + '<div class="stat"><div class="k">'+label+'</div><div class="v money">'+esc(money(t.earned))+'</div><div class="s">'+plural(t.done,"class")+' · '+hoursText(t.minutes)+'</div>'
+    + (goal?'<div class="bar"><i style="width:'+pct+'%"></i></div><div class="s">'+pct+'% of '+esc(money(goal))+' goal</div>':"")+'</div>'
+    + '<div class="stat"><div class="k">Still expected</div><div class="v money">'+esc(money(t.expected))+'</div><div class="s">'+plural(t.upcoming,"class")+' booked</div></div>'
+    + '<div class="stat"><div class="k">Not paid yet</div><div class="v money" style="color:'+(t.unpaid?"var(--warn)":"inherit")+'">'+esc(money(t.unpaid))+'</div><div class="s">finished but unpaid</div></div>'
+    + '<div class="stat"><div class="k">Average / class</div><div class="v money">'+esc(money(t.done? t.earned/t.done : 0))+'</div><div class="s">'+(t.minutes?esc(money(t.earned/(t.minutes/60)))+" / hour":"—")+'</div></div>'
+    + '</div>';
+
+  // per studio
+  const perStudio = state.studios.map(s=>{
+    const mine = list.filter(c=>c.studioId===s.id);
+    const st = totals(mine);
+    return { s, st };
+  }).filter(x=>x.st.earned || x.st.expected || x.st.done);
+  const max = Math.max(1, ...perStudio.map(x=>x.st.earned));
+
+  html += '<div class="section"><div class="section-title">By studio</div>';
+  if(!perStudio.length){
+    html += '<div class="empty">Nothing recorded in this period yet.</div>';
+  }else{
+    html += perStudio.sort((a,b)=>b.st.earned-a.st.earned).map(x=>
+        '<div class="card" style="margin-bottom:10px">'
+      +   '<div style="display:flex;align-items:center;gap:9px">'
+      +     '<span style="width:12px;height:12px;border-radius:4px;background:'+x.s.color+'"></span>'
+      +     '<b style="flex:1">'+esc(x.s.name)+'</b>'
+      +     '<span class="money" style="font-weight:800">'+esc(money(x.st.earned))+'</span>'
+      +   '</div>'
+      +   '<div class="bar"><i style="width:'+Math.round(x.st.earned/max*100)+'%;background:'+x.s.color+'"></i></div>'
+      +   '<div class="cls-sub" style="margin-top:7px"><span>'+plural(x.st.done,"class")+'</span><span>'+hoursText(x.st.minutes)+'</span>'
+      +   (x.st.unpaid?'<span style="color:var(--warn)">'+esc(money(x.st.unpaid))+' unpaid</span>':"")
+      +   (x.st.expected?'<span>'+esc(money(x.st.expected))+' upcoming</span>':"")+'</div>'
+      + '</div>').join("");
+  }
+  html += '</div>';
+
+  const unpaid = sortClasses(list.filter(c=>c.status==="done" && !c.paid));
+  if(unpaid.length){
+    html += '<div class="section"><div class="section-title">Unpaid classes <span class="count">'+unpaid.length+'</span></div>'
+      + unpaid.map(c=>classCard(c,{showDate:true})).join("")
+      + '<button class="btn ghost" data-act="pay-all">💵 Mark all '+unpaid.length+' as paid</button></div>';
+  }
+
+  html += '<div class="section">'
+    + '<button class="btn ghost" data-act="report">↗ Send earnings summary</button>'
+    + '<button class="btn ghost" data-act="export-csv">⤓ Export to spreadsheet (CSV)</button>'
+    + '</div>';
+  return html;
+}
+
+/* =========================================================================
+   Sheets (add / edit / finish / settings)
+   ========================================================================= */
+function openSheet(title, bodyHTML, onMount){
+  const m = $("#modal");
+  m.innerHTML = '<div class="sheet-bg" data-close="1"><div class="sheet" role="dialog" aria-modal="true">'
+    + '<div class="grip"></div><h2>'+esc(title)+'</h2>' + bodyHTML + '</div></div>';
+  m.querySelector(".sheet-bg").addEventListener("click", e=>{ if(e.target.dataset.close) closeSheet(); });
+  if(onMount) onMount(m.querySelector(".sheet"));
+}
+function closeSheet(){ $("#modal").innerHTML = ""; }
+
+function studioOptions(sel){
+  if(!state.studios.length) return '<option value="">— add a studio first —</option>';
+  return state.studios.map(s=>'<option value="'+s.id+'"'+(s.id===sel?" selected":"")+'>'+esc(s.name)+'</option>').join("");
+}
+
+/* ---------- class form ---------- */
+function classForm(id, presetDate){
+  const editing = !!id;
+  const c = editing ? state.classes.find(x=>x.id===id) : null;
+  if(editing && !c) return;
+  const def = state.settings;
+  const cur = c || {
+    studioId: state.studios[0] ? state.studios[0].id : "",
+    title:"", date: presetDate || todayISO(), start:"18:00",
+    duration: def.defaultDuration||60, rate:"", payType:"", notes:"",
+    reminderMin: def.defaultReminder, repeat:0
+  };
+
+  const body = ''
+  + '<label class="f"><span>Studio</span><select id="f-studio">'+studioOptions(cur.studioId)+'</select></label>'
+  + '<label class="f"><span>Class name (optional)</span><input id="f-title" placeholder="e.g. Reformer Pilates, Level 2" value="'+esc(cur.title)+'"></label>'
+  + '<div class="row2">'
+  +   '<label class="f"><span>Date</span><input type="date" id="f-date" value="'+esc(cur.date)+'"></label>'
+  +   '<label class="f"><span>Start time</span><input type="time" id="f-start" value="'+esc(cur.start)+'"></label>'
+  + '</div>'
+  + '<div class="row2">'
+  +   '<label class="f"><span>Length (minutes)</span><input type="number" inputmode="numeric" id="f-duration" min="5" step="5" value="'+esc(cur.duration)+'"></label>'
+  +   '<label class="f"><span>Remind me</span><select id="f-remind">'
+  +     [["","No reminder"],["15","15 min before"],["30","30 min before"],["60","1 hour before"],["120","2 hours before"],["1440","1 day before"]]
+          .map(o=>'<option value="'+o[0]+'"'+(String(cur.reminderMin||"")===o[0]?" selected":"")+'>'+o[1]+'</option>').join("")
+  +   '</select></label>'
+  + '</div>'
+  + '<div class="row2">'
+  +   '<label class="f"><span>Pay (leave empty = studio rate)</span><input type="number" inputmode="decimal" id="f-rate" step="0.01" placeholder="studio default" value="'+esc(cur.rate==null?"":cur.rate)+'"></label>'
+  +   '<label class="f"><span>Paid as</span><select id="f-paytype">'
+  +      '<option value=""'+(!cur.payType?" selected":"")+'>Same as studio</option>'
+  +      '<option value="per_class"'+(cur.payType==="per_class"?" selected":"")+'>Per class</option>'
+  +      '<option value="per_hour"'+(cur.payType==="per_hour"?" selected":"")+'>Per hour</option>'
+  +   '</select></label>'
+  + '</div>'
+  + (editing ? "" :
+      '<label class="f"><span>Repeat weekly</span><select id="f-repeat">'
+    +   [["0","Just this one"],["4","Every week × 4"],["8","Every week × 8"],["12","Every week × 12"],["24","Every week × 24"],["52","Every week × 52"]]
+           .map(o=>'<option value="'+o[0]+'">'+o[1]+'</option>').join("")
+    + '</select></label>')
+  + '<label class="f"><span>Notes</span><textarea id="f-notes" placeholder="Room, contact person, anything to remember">'+esc(cur.notes)+'</textarea></label>'
+  + '<div id="f-preview" class="hint"></div>'
+  + '<button class="btn primary" id="f-save">'+(editing?"Save changes":"Add class")+'</button>'
+  + (editing && c.seriesId ? '<button class="btn ghost" id="f-save-series">Save this &amp; all future in the series</button>' : "")
+  + (editing ? '<button class="btn danger" id="f-del">Delete class</button>' : "")
+  + '<button class="btn ghost" id="f-cancel">Close</button>';
+
+  openSheet(editing?"Edit class":"New class", body, sheet=>{
+    const read = () => ({
+      studioId: $("#f-studio",sheet).value,
+      title: $("#f-title",sheet).value.trim(),
+      date: $("#f-date",sheet).value || todayISO(),
+      start: $("#f-start",sheet).value || "00:00",
+      duration: Math.max(5, Number($("#f-duration",sheet).value)||60),
+      rate: $("#f-rate",sheet).value==="" ? null : Number($("#f-rate",sheet).value),
+      payType: $("#f-paytype",sheet).value,
+      reminderMin: $("#f-remind",sheet).value==="" ? null : Number($("#f-remind",sheet).value),
+      notes: $("#f-notes",sheet).value.trim()
+    });
+    const preview = () => {
+      const d = read();
+      $("#f-preview",sheet).textContent = "This class is worth " + money(classValue(Object.assign({status:"scheduled"}, d)))
+        + " · " + hhmm(d.start) + "–" + hhmm(pad(classEnd(Object.assign({},d)).getHours())+":"+pad(classEnd(Object.assign({},d)).getMinutes()));
+    };
+    sheet.addEventListener("input", preview); sheet.addEventListener("change", preview); preview();
+
+    $("#f-cancel",sheet).onclick = closeSheet;
+    if($("#f-del",sheet)) $("#f-del",sheet).onclick = ()=> deleteClass(id);
+    $("#f-save",sheet).onclick = ()=>{
+      const d = read();
+      if(!d.studioId && state.studios.length){ toast("Pick a studio"); return; }
+      if(editing){
+        Object.assign(c, d); save(); closeSheet(); render(); toast("Class updated");
+      }else{
+        const times = Number(($("#f-repeat",sheet)||{}).value || 0);
+        addClasses(d, times);
+      }
+    };
+    if($("#f-save-series",sheet)) $("#f-save-series",sheet).onclick = ()=>{
+      const d = read();
+      const affected = state.classes.filter(x=>x.seriesId===c.seriesId && x.date>=c.date && x.status==="scheduled");
+      affected.forEach((x,i)=>{
+        const keepDate = x.date;
+        Object.assign(x, d);
+        if(x.id!==c.id) x.date = keepDate;      // keep each occurrence on its own day
+      });
+      save(); closeSheet(); render(); toast("Updated "+affected.length+" classes");
+    };
+  });
+}
+
+function addClasses(d, repeatCount){
+  const seriesId = repeatCount>0 ? uid() : null;
+  const n = repeatCount>0 ? repeatCount : 1;
+  const base = parseISO(d.date);
+  for(let i=0;i<n;i++){
+    state.classes.push(Object.assign({}, d, {
+      id: uid(), seriesId,
+      date: isoDate(addDays(base, i*7)),
+      status:"scheduled", earned:null, paid:false, attendees:null
+    }));
+  }
+  save(); closeSheet(); render(); scheduleReminders();
+  toast(n>1 ? n+" classes added" : "Class added");
+}
+
+function deleteClass(id){
+  const c = state.classes.find(x=>x.id===id); if(!c) return;
+  if(c.seriesId){
+    openSheet("Delete repeating class",
+        '<p style="color:var(--muted);margin-top:0">This class repeats weekly. What should be removed?</p>'
+      + '<button class="btn ghost" id="d-one">Only this one ('+esc(shortDate(c.date))+')</button>'
+      + '<button class="btn ghost" id="d-future">This one and all future ones</button>'
+      + '<button class="btn danger" id="d-all">Every class in the series</button>'
+      + '<button class="btn ghost" id="d-cancel">Keep everything</button>',
+      sheet=>{
+        $("#d-cancel",sheet).onclick = closeSheet;
+        $("#d-one",sheet).onclick = ()=>{ state.classes = state.classes.filter(x=>x.id!==id); done(1); };
+        $("#d-future",sheet).onclick = ()=>{
+          const n = state.classes.filter(x=>x.seriesId===c.seriesId && x.date>=c.date).length;
+          state.classes = state.classes.filter(x=>!(x.seriesId===c.seriesId && x.date>=c.date)); done(n);
+        };
+        $("#d-all",sheet).onclick = ()=>{
+          const n = state.classes.filter(x=>x.seriesId===c.seriesId).length;
+          state.classes = state.classes.filter(x=>x.seriesId!==c.seriesId); done(n);
+        };
+        function done(n){ save(); closeSheet(); render(); toast(n+" class"+(n>1?"es":"")+" deleted"); }
+      });
+  }else{
+    state.classes = state.classes.filter(x=>x.id!==id);
+    save(); closeSheet(); render(); toast("Class deleted");
+  }
+}
+
+/* ---------- everything else you can do to a class ---------- */
+function moreSheet(id){
+  const c = state.classes.find(x=>x.id===id); if(!c) return;
+  const rows = [];
+  if(c.status==="scheduled"){
+    rows.push(["remind","🔔 Set a reminder"]);
+    rows.push(["ics-one","📅 Add to my phone calendar"]);
+    rows.push(["share","↗ Send by WhatsApp / SMS / email"]);
+    rows.push(["edit","✎ Edit class"]);
+    rows.push(["cancel","✖ Class was cancelled"]);
+  }else if(c.status==="done"){
+    rows.push(["share","↗ Send by WhatsApp / SMS / email"]);
+    rows.push(["edit","✎ Edit class"]);
+    rows.push(["reopen","↺ Reopen (undo finish)"]);
+  }else{
+    rows.push(["reopen","↺ Put it back on the schedule"]);
+  }
+  const body = ''
+  + '<div class="banner"><b>'+esc(c.title||studioName(c.studioId))+'</b><br>'
+  +   esc(dayLabel(c.date))+' · '+esc(hhmm(c.start))+' · '+esc(studioName(c.studioId))+'</div>'
+  + rows.map(r=>'<button class="btn ghost" data-more="'+r[0]+'">'+r[1]+'</button>').join("")
+  + '<button class="btn danger" data-more="delete">🗑 Delete class</button>'
+  + '<button class="btn ghost" data-more="close">Close</button>';
+  openSheet("Class options", body, sheet=>{
+    sheet.querySelectorAll("[data-more]").forEach(b=> b.onclick = ()=>{
+      const a = b.dataset.more;
+      if(a==="close") return closeSheet();
+      if(a==="remind") return reminderSheet(id);
+      if(a==="edit") return classForm(id);
+      if(a==="delete") return deleteClass(id);
+      if(a==="share") return shareText(classSummary(c), "Class details");
+      if(a==="ics-one"){ downloadICS([c], "class-"+c.date); return closeSheet(); }
+      if(a==="cancel"){ c.status="cancelled"; }
+      if(a==="reopen"){ c.status="scheduled"; c.earned=null; c.paid=false; delete state.notified[c.id]; }
+      save(); closeSheet(); render();
+      toast(a==="cancel" ? "Class cancelled" : "Class reopened");
+    });
+  });
+}
+
+/* ---------- finish a class ---------- */
+function finishForm(id){
+  const c = state.classes.find(x=>x.id===id); if(!c) return;
+  const suggested = c.earned!=null && c.earned!=="" ? c.earned : classValue(Object.assign({}, c, {status:"scheduled"}));
+  const body = ''
+  + '<div class="banner"><b>'+esc(c.title||studioName(c.studioId))+'</b><br>'
+  +   esc(dayLabel(c.date))+' · '+esc(hhmm(c.start))+' · '+esc(studioName(c.studioId))+'</div>'
+  + '<label class="f"><span>How much did you earn?</span>'
+  +   '<input type="number" inputmode="decimal" step="0.01" id="fin-amount" value="'+esc(suggested)+'"></label>'
+  + '<div class="row3" style="margin-top:-4px;margin-bottom:12px">'
+  +   [0.5,1,1.5].map(m=>'<button class="chip" data-mult="'+m+'" style="justify-content:center">×'+m+'</button>').join("")
+  + '</div>'
+  + '<div class="row2">'
+  +   '<label class="f"><span>Students (optional)</span><input type="number" inputmode="numeric" id="fin-att" value="'+esc(c.attendees==null?"":c.attendees)+'"></label>'
+  +   '<label class="f"><span>Actual length (min)</span><input type="number" inputmode="numeric" id="fin-dur" step="5" value="'+esc(c.duration)+'"></label>'
+  + '</div>'
+  + '<div class="switch"><span>I already got paid</span><input type="checkbox" id="fin-paid"'+(c.paid?" checked":"")+'></div>'
+  + '<label class="f"><span>Notes</span><textarea id="fin-notes" placeholder="How did it go?">'+esc(c.notes||"")+'</textarea></label>'
+  + '<button class="btn primary" id="fin-save">✓ Finish class</button>'
+  + '<button class="btn ghost" id="fin-cancel">Close</button>';
+
+  openSheet(c.status==="done"?"Update earnings":"Finish class", body, sheet=>{
+    sheet.querySelectorAll("[data-mult]").forEach(b=> b.onclick = ()=>{
+      $("#fin-amount",sheet).value = Math.round(classValue(Object.assign({}, c, {status:"scheduled"})) * Number(b.dataset.mult) * 100)/100;
+    });
+    $("#fin-cancel",sheet).onclick = closeSheet;
+    $("#fin-save",sheet).onclick = ()=>{
+      c.status = "done";
+      c.earned = Number($("#fin-amount",sheet).value)||0;
+      c.duration = Math.max(5, Number($("#fin-dur",sheet).value)||c.duration);
+      const att = $("#fin-att",sheet).value;
+      c.attendees = att==="" ? null : Number(att);
+      c.paid = $("#fin-paid",sheet).checked;
+      c.notes = $("#fin-notes",sheet).value.trim();
+      c.finishedAt = new Date().toISOString();
+      save(); closeSheet(); render();
+      toast("Nice work — " + money(c.earned) + " recorded");
+    };
+  });
+}
+
+/* ---------- studio form ---------- */
+function studioForm(id){
+  const editing = !!id;
+  const s = editing ? studio(id) : null;
+  if(editing && !s) return;
+  const cur = s || { name:"", color: PALETTE[state.studios.length % PALETTE.length], rate:"", payType:"per_class", address:"", contact:"" };
+  const body = ''
+  + '<label class="f"><span>Studio name</span><input id="s-name" placeholder="e.g. Bodyline Studio" value="'+esc(cur.name)+'"></label>'
+  + '<div class="row2">'
+  +   '<label class="f"><span>Rate</span><input type="number" inputmode="decimal" step="0.01" id="s-rate" value="'+esc(cur.rate)+'"></label>'
+  +   '<label class="f"><span>Paid</span><select id="s-paytype">'
+  +     '<option value="per_class"'+(cur.payType==="per_class"?" selected":"")+'>Per class</option>'
+  +     '<option value="per_hour"'+(cur.payType==="per_hour"?" selected":"")+'>Per hour</option>'
+  +   '</select></label>'
+  + '</div>'
+  + '<label class="f"><span>Colour</span><div class="row3" id="s-colors">'
+  +   PALETTE.map(p=>'<button type="button" data-color="'+p+'" style="height:34px;border-radius:11px;background:'+p
+  +     +';border:2px solid '+(p===cur.color?"var(--text)":"transparent")+'"></button>').join("")
+  + '</div></label>'
+  + '<label class="f"><span>Address / room (optional)</span><input id="s-address" value="'+esc(cur.address||"")+'"></label>'
+  + '<label class="f"><span>Contact person or phone (optional)</span><input id="s-contact" value="'+esc(cur.contact||"")+'"></label>'
+  + '<button class="btn primary" id="s-save">'+(editing?"Save studio":"Add studio")+'</button>'
+  + (editing ? '<button class="btn danger" id="s-del">Delete studio</button>' : "")
+  + '<button class="btn ghost" id="s-cancel">Close</button>';
+
+  openSheet(editing?"Edit studio":"New studio", body, sheet=>{
+    let color = cur.color;
+    sheet.querySelectorAll("[data-color]").forEach(b=> b.onclick = ()=>{
+      color = b.dataset.color;
+      sheet.querySelectorAll("[data-color]").forEach(x=> x.style.borderColor = x.dataset.color===color ? "var(--text)" : "transparent");
+    });
+    $("#s-cancel",sheet).onclick = closeSheet;
+    $("#s-save",sheet).onclick = ()=>{
+      const name = $("#s-name",sheet).value.trim();
+      if(!name){ toast("Give the studio a name"); return; }
+      const data = {
+        name, color,
+        rate: Number($("#s-rate",sheet).value)||0,
+        payType: $("#s-paytype",sheet).value,
+        address: $("#s-address",sheet).value.trim(),
+        contact: $("#s-contact",sheet).value.trim()
+      };
+      if(editing) Object.assign(s, data);
+      else state.studios.push(Object.assign({id:uid()}, data));
+      save(); closeSheet(); render(); toast(editing?"Studio saved":"Studio added");
+    };
+    if($("#s-del",sheet)) $("#s-del",sheet).onclick = ()=>{
+      const n = state.classes.filter(c=>c.studioId===id).length;
+      if(!confirm("Delete "+s.name+"?" + (n?" Its "+n+" class"+(n>1?"es":"")+" will stay, without a studio.":""))) return;
+      state.studios = state.studios.filter(x=>x.id!==id);
+      save(); closeSheet(); render(); toast("Studio deleted");
+    };
+  });
+}
+
+/* =========================================================================
+   Reminders
+   Two layers, because a web app cannot wake a sleeping phone on its own:
+     1. Phone notification  — fires while the app is open or in the background.
+     2. Calendar file (.ics) — the phone's own calendar alarms it, always,
+        even offline and even if the app is closed. This is the reliable one.
+   ========================================================================= */
+async function askNotifyPermission(){
+  if(!("Notification" in window)){ toast("This browser has no notifications"); return false; }
+  let p = Notification.permission;
+  if(p==="default") p = await Notification.requestPermission();
+  if(p!=="granted"){ toast("Notifications are blocked in browser settings"); return false; }
+  state.settings.notifyOn = true; save();
+  return true;
+}
+function notify(title, body, tag){
+  try{
+    if(!("Notification" in window) || Notification.permission!=="granted") return;
+    if(navigator.serviceWorker && navigator.serviceWorker.ready){
+      navigator.serviceWorker.ready.then(reg=>{
+        reg.showNotification(title, { body, tag, icon:"icon.svg", badge:"icon.svg", vibrate:[120,60,120], requireInteraction:true });
+      }).catch(()=> new Notification(title,{body, tag}));
+    }else{
+      new Notification(title, { body, tag });
+    }
+  }catch(e){ /* notifications unsupported */ }
+}
+/** Runs every 30s while the app is open: fires any reminder that came due. */
+function scheduleReminders(){
+  const now = Date.now();
+  state.classes.forEach(c=>{
+    if(c.status!=="scheduled" || !c.reminderMin) return;
+    const due = classStart(c).getTime() - c.reminderMin*60000;
+    if(now >= due && now < classStart(c).getTime() + 15*60000 && !state.notified[c.id]){
+      state.notified[c.id] = true;
+      notify("Class in " + (c.reminderMin>=60 ? Math.round(c.reminderMin/60)+"h" : c.reminderMin+" min"),
+             (c.title || studioName(c.studioId)) + " · " + hhmm(c.start) + " at " + studioName(c.studioId),
+             "cls-"+c.id);
+      save();
+    }
+  });
+  // nudge about classes that ended but were never closed
+  const stale = state.classes.filter(c=>c.status==="scheduled" && classEnd(c).getTime() < now - 10*60000 && !state.notified["end-"+c.id]);
+  stale.forEach(c=>{
+    state.notified["end-"+c.id] = true;
+    notify("Class finished — add your earnings",
+           (c.title || studioName(c.studioId)) + " ended at " + hhmm(pad(classEnd(c).getHours())+":"+pad(classEnd(c).getMinutes())),
+           "end-"+c.id);
+  });
+  if(stale.length) save();
+}
+
+function reminderSheet(id){
+  const c = state.classes.find(x=>x.id===id); if(!c) return;
+  const opts = [["","No reminder"],["15","15 minutes before"],["30","30 minutes before"],["60","1 hour before"],["120","2 hours before"],["1440","1 day before"]];
+  const body = ''
+  + '<label class="f"><span>Remind me</span><select id="r-when">'
+  +   opts.map(o=>'<option value="'+o[0]+'"'+(String(c.reminderMin||"")===o[0]?" selected":"")+'>'+o[1]+'</option>').join("")
+  + '</select></label>'
+  + '<button class="btn primary" id="r-save">Save reminder</button>'
+  + '<button class="btn ghost" id="r-ics">📅 Add to my phone calendar (works offline)</button>'
+  + '<div class="hint" style="margin-top:10px">A phone notification only reaches you while this app is open or in the background. '
+  + 'Adding the class to your phone calendar gives you a real alarm that always rings.</div>'
+  + '<button class="btn ghost" id="r-close">Close</button>';
+  openSheet("Reminder", body, sheet=>{
+    $("#r-close",sheet).onclick = closeSheet;
+    $("#r-ics",sheet).onclick = ()=>{ downloadICS([c], "class-"+c.date); };
+    $("#r-save",sheet).onclick = async ()=>{
+      const v = $("#r-when",sheet).value;
+      c.reminderMin = v==="" ? null : Number(v);
+      delete state.notified[c.id];
+      if(c.reminderMin) await askNotifyPermission();
+      save(); closeSheet(); render(); toast(c.reminderMin?"Reminder set":"Reminder removed");
+    };
+  });
+}
+
+/* ---------- calendar file ---------- */
+function icsStamp(d){
+  return d.getUTCFullYear()+pad(d.getUTCMonth()+1)+pad(d.getUTCDate())+"T"
+       + pad(d.getUTCHours())+pad(d.getUTCMinutes())+pad(d.getUTCSeconds())+"Z";
+}
+function icsEscape(s){ return String(s||"").replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\r?\n/g,"\\n"); }
+function buildICS(list){
+  const L = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Instructor Class Tracker//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH"];
+  list.forEach(c=>{
+    const s = studio(c.studioId);
+    L.push("BEGIN:VEVENT");
+    L.push("UID:"+c.id+"@instructor.local");
+    L.push("DTSTAMP:"+icsStamp(new Date()));
+    L.push("DTSTART:"+icsStamp(classStart(c)));
+    L.push("DTEND:"+icsStamp(classEnd(c)));
+    L.push("SUMMARY:"+icsEscape((c.title || "Class") + " — " + studioName(c.studioId)));
+    L.push("DESCRIPTION:"+icsEscape("Pay: "+money(classValue(c))+(c.notes?("\n"+c.notes):"")));
+    if(s && s.address) L.push("LOCATION:"+icsEscape(s.address));
+    const mins = c.reminderMin || state.settings.defaultReminder || 60;
+    L.push("BEGIN:VALARM","TRIGGER:-PT"+mins+"M","ACTION:DISPLAY",
+           "DESCRIPTION:"+icsEscape("Class at "+studioName(c.studioId)+" in "+mins+" minutes"),"END:VALARM");
+    L.push("END:VEVENT");
+  });
+  L.push("END:VCALENDAR");
+  return L.join("\r\n");
+}
+function downloadFile(name, mime, text){
+  const blob = new Blob([text], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 800);
+}
+function downloadICS(list, name){
+  if(!list.length){ toast("Nothing to add"); return; }
+  downloadFile(name+".ics","text/calendar;charset=utf-8", buildICS(list));
+  toast("Open the downloaded file to add it to your calendar");
+}
+
+/* ---------- sending a summary (WhatsApp / SMS / email) ---------- */
+function shareText(text, subject){
+  const phone = (state.settings.phone||"").replace(/[^0-9]/g,"");
+  const mail = state.settings.email||"";
+  const body = ''
+  + '<div class="banner" style="white-space:pre-wrap">'+esc(text)+'</div>'
+  + '<button class="btn primary" id="sh-wa">💬 WhatsApp</button>'
+  + '<button class="btn ghost" id="sh-sms">✉️ Text message (SMS)</button>'
+  + '<button class="btn ghost" id="sh-mail">📧 Email</button>'
+  + (navigator.share ? '<button class="btn ghost" id="sh-native">↗ Other apps</button>' : "")
+  + '<button class="btn ghost" id="sh-copy">⧉ Copy text</button>'
+  + '<div class="hint" style="margin-top:10px">WhatsApp and email need an internet connection — everything else in this app works offline.</div>'
+  + '<button class="btn ghost" id="sh-close">Close</button>';
+  openSheet("Send", body, sheet=>{
+    $("#sh-close",sheet).onclick = closeSheet;
+    $("#sh-wa",sheet).onclick = ()=> location.href = "https://wa.me/"+phone+"?text="+encodeURIComponent(text);
+    $("#sh-sms",sheet).onclick = ()=> location.href = "sms:"+(phone?"+"+phone:"")+(/iPhone|iPad|Mac/i.test(navigator.userAgent)?"&":"?")+"body="+encodeURIComponent(text);
+    $("#sh-mail",sheet).onclick = ()=> location.href = "mailto:"+encodeURIComponent(mail)+"?subject="+encodeURIComponent(subject||"My classes")+"&body="+encodeURIComponent(text);
+    if($("#sh-native",sheet)) $("#sh-native",sheet).onclick = ()=> navigator.share({title:subject||"My classes", text}).catch(()=>{});
+    $("#sh-copy",sheet).onclick = async ()=>{
+      try{ await navigator.clipboard.writeText(text); toast("Copied"); }
+      catch(e){ toast("Select the text above to copy"); }
+    };
+  });
+}
+function classSummary(c){
+  return [
+    (c.title || "Class") + " — " + studioName(c.studioId),
+    "📅 " + parseISO(c.date).toLocaleDateString(undefined,{weekday:"long", day:"numeric", month:"long"}),
+    "🕒 " + hhmm(c.start) + " (" + hoursText(c.duration) + ")",
+    "💰 " + money(classValue(c)) + (c.status==="done" ? (c.paid?" — paid":" — not paid yet") : "")
+  ].join("\n");
+}
+function periodReport(){
+  const now = new Date();
+  let from, to, label;
+  if(ui.moneyRange==="week"){ from=startOfWeek(now); to=addDays(from,6); label="This week"; }
+  else if(ui.moneyRange==="month"){ from=startOfMonth(now); to=new Date(now.getFullYear(),now.getMonth()+1,0); label=from.toLocaleDateString(undefined,{month:"long", year:"numeric"}); }
+  else { from=new Date(now.getFullYear(),0,1); to=new Date(now.getFullYear(),11,31); label=String(now.getFullYear()); }
+  const list = classesBetween(isoDate(from), isoDate(to));
+  const t = totals(list);
+  const lines = ["📊 " + label, "", "Classes taught: "+t.done, "Hours: "+hoursText(t.minutes), "Earned: "+money(t.earned)];
+  if(t.unpaid) lines.push("Not paid yet: "+money(t.unpaid));
+  if(t.expected) lines.push("Still expected: "+money(t.expected));
+  lines.push("");
+  state.studios.forEach(s=>{
+    const st = totals(list.filter(c=>c.studioId===s.id));
+    if(st.done) lines.push(s.name+": "+plural(st.done,"class")+" · "+money(st.earned)+(st.unpaid?" ("+money(st.unpaid)+" unpaid)":""));
+  });
+  return lines.join("\n");
+}
+function exportCSV(){
+  const head = ["Date","Start","End","Studio","Class","Minutes","Status","Amount","Paid","Students","Notes"];
+  const rows = sortClasses(state.classes).map(c=>[
+    c.date, hhmm(c.start), hhmm(pad(classEnd(c).getHours())+":"+pad(classEnd(c).getMinutes())),
+    studioName(c.studioId), c.title||"", c.duration, c.status,
+    Math.round(classValue(c)*100)/100, c.status==="done" ? (c.paid?"yes":"no") : "",
+    c.attendees==null?"":c.attendees, (c.notes||"").replace(/\r?\n/g," ")
+  ]);
+  const csv = [head].concat(rows).map(r=>r.map(x=>'"'+String(x==null?"":x).replace(/"/g,'""')+'"').join(",")).join("\r\n");
+  downloadFile("my-classes-"+todayISO()+".csv","text/csv;charset=utf-8","\ufeff"+csv);
+  toast("CSV saved to your downloads");
+}
+
+/* =========================================================================
+   Settings & backup
+   ========================================================================= */
+function settingsSheet(){
+  const s = state.settings;
+  const body = ''
+  + '<label class="f"><span>Your name / app title</span><input id="st-name" value="'+esc(s.name)+'"></label>'
+  + '<div class="row2">'
+  +   '<label class="f"><span>Currency</span><select id="st-cur">'
+  +     CURRENCIES.map(c=>'<option'+(c===s.currency?" selected":"")+'>'+c+'</option>').join("")
+  +   '</select></label>'
+  +   '<label class="f"><span>Monthly goal (optional)</span><input type="number" inputmode="decimal" id="st-goal" value="'+esc(s.goal||"")+'"></label>'
+  + '</div>'
+  + '<div class="row2">'
+  +   '<label class="f"><span>Default class length</span><input type="number" inputmode="numeric" step="5" id="st-dur" value="'+esc(s.defaultDuration)+'"></label>'
+  +   '<label class="f"><span>Default reminder</span><select id="st-rem">'
+  +     [["","None"],["15","15 min"],["30","30 min"],["60","1 hour"],["120","2 hours"],["1440","1 day"]]
+          .map(o=>'<option value="'+o[0]+'"'+(String(s.defaultReminder||"")===o[0]?" selected":"")+'>'+o[1]+' before</option>').join("")
+  +   '</select></label>'
+  + '</div>'
+  + '<label class="f"><span>My WhatsApp / phone number (with country code)</span><input id="st-phone" inputmode="tel" placeholder="+971 50 000 0000" value="'+esc(s.phone)+'"></label>'
+  + '<label class="f"><span>My email</span><input id="st-email" inputmode="email" value="'+esc(s.email)+'"></label>'
+  + '<div class="hint">Used by the “Send” buttons so a class or a summary goes straight to you.</div>'
+
+  + '<div class="section-title" style="margin-top:18px">Reminders</div>'
+  + '<button class="btn ghost" id="st-notify">🔔 '+(("Notification" in window && Notification.permission==="granted")?"Notifications are on — send a test":"Turn on phone notifications")+'</button>'
+  + '<button class="btn ghost" id="st-ics-all">📅 Put all upcoming classes in my phone calendar</button>'
+  + '<div class="hint" style="margin-top:8px">Notifications reach you while the app is open or in the background. '
+  + 'The calendar export gives you a real phone alarm for every class, even when the app is closed and with no internet.</div>'
+
+  + '<div class="section-title" style="margin-top:18px">Backup</div>'
+  + '<button class="btn ghost" id="st-backup">⤓ Save a backup file</button>'
+  + '<button class="btn ghost" id="st-restore">⤒ Restore from a backup file</button>'
+  + '<button class="btn ghost" id="st-csv">⤓ Export everything as CSV</button>'
+  + '<div class="hint" style="margin-top:8px">Everything is stored only on this phone. Save a backup before changing phone or clearing your browser.</div>'
+  + '<input type="file" id="st-file" accept=".json,application/json" style="display:none">'
+
+  + '<button class="btn primary" id="st-save" style="margin-top:18px">Save settings</button>'
+  + '<button class="btn danger" id="st-wipe">Erase all my data</button>'
+  + '<button class="btn ghost" id="st-close">Close</button>';
+
+  openSheet("Settings", body, sheet=>{
+    $("#st-close",sheet).onclick = closeSheet;
+    $("#st-save",sheet).onclick = ()=>{
+      s.name = $("#st-name",sheet).value.trim() || "My Classes";
+      s.currency = $("#st-cur",sheet).value;
+      s.goal = Number($("#st-goal",sheet).value)||0;
+      s.defaultDuration = Math.max(5, Number($("#st-dur",sheet).value)||60);
+      const r = $("#st-rem",sheet).value;
+      s.defaultReminder = r==="" ? null : Number(r);
+      s.phone = $("#st-phone",sheet).value.trim();
+      s.email = $("#st-email",sheet).value.trim();
+      save(); closeSheet(); render(); toast("Settings saved");
+    };
+    $("#st-notify",sheet).onclick = async ()=>{
+      if(await askNotifyPermission()){
+        notify("Reminders are on ✅","You'll get a nudge before each class.","test");
+        toast("Test notification sent");
+      }
+    };
+    $("#st-ics-all",sheet).onclick = ()=>{
+      const t = todayISO();
+      downloadICS(sortClasses(state.classes.filter(c=>c.status==="scheduled" && c.date>=t)), "my-classes");
+    };
+    $("#st-csv",sheet).onclick = exportCSV;
+    $("#st-backup",sheet).onclick = ()=>{
+      downloadFile("classes-backup-"+todayISO()+".json","application/json", JSON.stringify(state,null,2));
+      toast("Backup saved");
+    };
+    $("#st-restore",sheet).onclick = ()=> $("#st-file",sheet).click();
+    $("#st-file",sheet).onchange = e=>{
+      const f = e.target.files[0]; if(!f) return;
+      const r = new FileReader();
+      r.onload = ()=>{
+        try{
+          const data = JSON.parse(r.result);
+          if(!data || !Array.isArray(data.classes)) throw new Error("bad file");
+          if(!confirm("Replace everything on this phone with the backup ("+data.classes.length+" classes)?")) return;
+          state = Object.assign(blankState(), data, {settings: Object.assign(blankState().settings, data.settings||{})});
+          save(); closeSheet(); render(); toast("Backup restored");
+        }catch(err){ toast("That file could not be read"); }
+      };
+      r.readAsText(f);
+    };
+    $("#st-wipe",sheet).onclick = ()=>{
+      if(!confirm("Delete all studios, classes and earnings from this phone? This cannot be undone.")) return;
+      if(!confirm("Really erase everything?")) return;
+      state = blankState(); save(); closeSheet(); render(); toast("All data erased");
+    };
+  });
+}
+
+/* =========================================================================
+   Events
+   ========================================================================= */
+document.addEventListener("click", e=>{
+  const btn = e.target.closest("[data-act], .tab");
+  if(!btn) return;
+  if(btn.classList.contains("tab")){ ui.tab = btn.dataset.tab; render(); window.scrollTo(0,0); return; }
+  const id = btn.dataset.id;
+  const act = btn.dataset.act;
+
+  if(act==="finish") finishForm(id);
+  else if(act==="more") moreSheet(id);
+  else if(act==="edit") classForm(id);
+  else if(act==="remind") reminderSheet(id);
+  else if(act==="delete") deleteClass(id);
+  else if(act==="share"){ const c = state.classes.find(x=>x.id===id); if(c) shareText(classSummary(c), "Class details"); }
+  else if(act==="cancel"){
+    const c = state.classes.find(x=>x.id===id);
+    if(c){ c.status="cancelled"; save(); render(); toast("Class cancelled"); }
+  }
+  else if(act==="reopen"){
+    const c = state.classes.find(x=>x.id===id);
+    if(c){ c.status="scheduled"; c.earned=null; c.paid=false; delete state.notified[c.id]; save(); render(); toast("Class reopened"); }
+  }
+  else if(act==="paid"){
+    const c = state.classes.find(x=>x.id===id);
+    if(c){ c.paid=!c.paid; save(); render(); toast(c.paid?"Marked as paid":"Marked as unpaid"); }
+  }
+  else if(act==="pay-all"){
+    state.classes.filter(c=>c.status==="done" && !c.paid).forEach(c=>c.paid=true);
+    save(); render(); toast("All marked as paid");
+  }
+  else if(act==="new-studio") studioForm(null);
+  else if(act==="edit-studio") studioForm(id);
+  else if(act==="month"){
+    ui.monthCursor = new Date(ui.monthCursor.getFullYear(), ui.monthCursor.getMonth()+Number(btn.dataset.step), 1);
+    render();
+  }
+  else if(act==="range"){ ui.moneyRange = btn.dataset.range; render(); }
+  else if(act==="report") shareText(periodReport(), "My earnings summary");
+  else if(act==="export-csv") exportCSV();
+  else if(act==="export-ics-month"){
+    const first = startOfMonth(ui.monthCursor), last = new Date(ui.monthCursor.getFullYear(), ui.monthCursor.getMonth()+1, 0);
+    downloadICS(classesBetween(isoDate(first), isoDate(last)).filter(c=>c.status!=="cancelled"),
+      "classes-"+first.getFullYear()+"-"+pad(first.getMonth()+1));
+  }
+});
+
+$("#fab").onclick = ()=>{
+  if(!state.studios.length){ studioForm(null); toast("Add a studio first"); return; }
+  classForm(null, ui.tab==="schedule" ? isoDate(ui.monthCursor) : todayISO());
+};
+$("#btnSettings").onclick = settingsSheet;
+$("#btnTheme").onclick = ()=>{
+  state.settings.theme = state.settings.theme==="light" ? "dark" : "light";
+  save(); render();
+};
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeSheet(); });
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden){ scheduleReminders(); render(); } });
+
+/* =========================================================================
+   Start
+   ========================================================================= */
+render();
+scheduleReminders();
+setInterval(scheduleReminders, 30000);
+setInterval(()=>{ if(!$("#modal").innerHTML) render(); }, 60000);  // keep "Now"/"needs closing" fresh
+
+if("serviceWorker" in navigator && location.protocol!=="file:"){
+  window.addEventListener("load", ()=> navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>

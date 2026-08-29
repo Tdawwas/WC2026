@@ -8,8 +8,21 @@ const nextConfig = {
       { protocol: 'https', hostname: 'a4.espncdn.com' },
     ],
   },
+  async rewrites() {
+    return [
+      { source: '/instructor', destination: '/instructor/index.html' },
+      { source: '/instructor/', destination: '/instructor/index.html' },
+    ];
+  },
   async headers() {
     return [
+      {
+        source: '/instructor/sw.js',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+        ],
+      },
       {
         source: '/sw.js',
         headers: [
