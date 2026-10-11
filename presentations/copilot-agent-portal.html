@@ -891,6 +891,8 @@ if(window.THREE){
     scene.add(m);pulses.push({t0:performance.now(),mesh:m});
   };
   renderer.domElement.addEventListener('click',()=>{holoPulse();});
+  // heartbeat: pulse every 2 seconds while the hologram is on screen
+  if(!reduce) setInterval(()=>{ if(visible && !document.hidden) holoPulse(); },2000);
 
   let mode=0;const w=[1,0,0];
   $$('.holo-ui [data-mode]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();mode=+b.dataset.mode;$$('.holo-ui [data-mode]').forEach(x=>x.setAttribute('aria-pressed',x===b));holoPulse();}));
