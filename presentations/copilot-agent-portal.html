@@ -1,0 +1,946 @@
+<title>Build Your Copilot Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one cinematic column. Hologram hero, pinned assembly scene, flow diagram, walkthrough, launch stage, presenter kit. */
+:root{
+  --beige:#F1E8DA;      /* page ground */
+  --beige-2:#E8DBC6;    /* recessed panels */
+  --paper:#FBF6EE;      /* raised cards */
+  --camel:#C19A6B;      /* primary accent */
+  --brown:#A47E57;      /* light brown */
+  --bronze:#7E5328;     /* deep accent, hologram core */
+  --ink:#36261A;        /* text */
+  --ink-soft:#6E5A47;   /* secondary text */
+  --line:rgba(126,83,40,.18);
+  --glow:#F5D7A6;
+  --f-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --f-body:"Figtree","Segoe UI",system-ui,-apple-system,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  --r:18px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--beige);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6;overflow-x:hidden}
+::selection{background:var(--glow);color:var(--ink)}
+a{color:var(--bronze)}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--bronze);outline-offset:3px;border-radius:6px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.05;margin:0;text-wrap:balance;letter-spacing:-.02em}
+h2{font-size:clamp(2rem,4.6vw,3.6rem);font-weight:800}
+h3{font-size:1.3rem;font-weight:600;letter-spacing:-.01em}
+p{margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:clamp(16px,4vw,40px)}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--bronze)}
+.lede{font-size:1.15rem;color:var(--ink-soft);max-width:58ch}
+section{position:relative}
+.sec{padding-block:clamp(72px,11vw,140px)}
+.sec-head{display:grid;gap:14px;margin-bottom:clamp(36px,5vw,60px);max-width:760px}
+
+/* ambient depth layers */
+.ambient{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;will-change:transform}
+.orb.a{width:520px;height:520px;background:radial-gradient(circle,#E9C99A,transparent 70%);top:-120px;right:-140px}
+.orb.b{width:420px;height:420px;background:radial-gradient(circle,#D8B58A,transparent 70%);top:55%;left:-160px}
+.orb.c{width:360px;height:360px;background:radial-gradient(circle,#F3DDB8,transparent 70%);top:120%;right:10%}
+.grain{position:absolute;inset:0;opacity:.35;background-image:radial-gradient(rgba(126,83,40,.10) 1px,transparent 1px);background-size:22px 22px}
+main,header,footer{position:relative;z-index:1}
+main{overflow-x:clip}
+
+/* progress + nav */
+.progress{position:fixed;top:0;left:0;height:3px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:linear-gradient(90deg,var(--camel),var(--bronze));z-index:50}
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;backdrop-filter:blur(12px);background:rgba(241,232,218,.72);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:800;font-size:1.05rem;text-decoration:none;color:var(--ink)}
+.brand i{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--glow),var(--camel) 45%,var(--bronze));box-shadow:0 0 18px rgba(193,154,107,.8)}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.nav-links a{font-size:.88rem;text-decoration:none;color:var(--ink-soft);padding:6px 10px;border-radius:999px;transition:background .2s,color .2s}
+.nav-links a:hover{background:var(--beige-2);color:var(--ink)}
+.chip-btn{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:7px 14px;border-radius:999px;font-size:.85rem;transition:transform .2s,box-shadow .2s,background .2s}
+.chip-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(126,83,40,.18)}
+.chip-btn[aria-pressed="true"]{background:var(--bronze);color:var(--paper);border-color:var(--bronze)}
+@media (max-width:820px){.nav-links a{display:none}}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:10px;border:0;border-radius:999px;padding:14px 24px;font-weight:600;text-decoration:none;transition:transform .25s,box-shadow .25s;position:relative;overflow:hidden}
+.btn.primary{background:linear-gradient(135deg,var(--brown),var(--bronze));color:var(--paper);box-shadow:0 10px 30px rgba(126,83,40,.35)}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1px solid var(--line)}
+.btn:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 16px 40px rgba(126,83,40,.35)}
+.btn::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);transform:translateX(-120%);transition:transform .7s}
+.btn:hover::after{transform:translateX(120%)}
+
+/* hero */
+.hero{padding-block:clamp(40px,7vw,90px) clamp(40px,6vw,70px)}
+.hero .wrap{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(24px,4vw,60px);align-items:center}
+.hero h1{font-size:clamp(2.7rem,6.6vw,5.4rem);font-weight:800;margin-block:16px 22px}
+.hero h1 em{font-style:normal;background:linear-gradient(100deg,var(--camel),var(--bronze) 60%,var(--camel));background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sheen 6s linear infinite}
+@keyframes sheen{to{background-position:-200% 0}}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
+.hero-meta{display:flex;gap:22px;flex-wrap:wrap;margin-top:34px;font-family:var(--f-mono);font-size:.78rem;color:var(--ink-soft)}
+.hero-meta b{display:block;font-family:var(--f-display);font-size:1.5rem;color:var(--ink);letter-spacing:-.02em}
+.holo{position:relative;aspect-ratio:1/1;max-width:100%;min-width:0}
+.holo canvas{position:absolute;inset:0;width:100%!important;height:100%!important;cursor:pointer;z-index:2}
+.holo::before{content:"";position:absolute;inset:8% 8% 14%;border-radius:50%;background:radial-gradient(circle,rgba(245,215,166,.95),rgba(232,201,154,.45) 45%,transparent 70%);filter:blur(10px);z-index:0;animation:breathe 5s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.06);opacity:.85}}
+.projector{position:absolute;left:50%;bottom:2%;width:56%;height:9%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse,rgba(126,83,40,.55),rgba(193,154,107,.25) 50%,transparent 72%);z-index:1}
+.beam{position:absolute;left:50%;bottom:6%;width:62%;height:70%;transform:translateX(-50%);clip-path:polygon(38% 100%,62% 100%,100% 0,0 0);background:linear-gradient(to top,rgba(193,154,107,.35),transparent 85%);z-index:1;opacity:.6}
+.scan{position:absolute;inset:6%;border-radius:50%;background:repeating-linear-gradient(to bottom,rgba(126,83,40,.06) 0 1px,transparent 1px 4px);z-index:3;pointer-events:none;mask-image:radial-gradient(circle,#000 40%,transparent 70%);-webkit-mask-image:radial-gradient(circle,#000 40%,transparent 70%)}
+.holo-ui{position:absolute;left:0;right:0;bottom:-6px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;z-index:4}
+.holo-hint{position:absolute;top:4%;right:2%;z-index:4;font-family:var(--f-mono);font-size:.7rem;color:var(--ink-soft);background:rgba(251,246,238,.8);border:1px solid var(--line);padding:6px 10px;border-radius:999px}
+.holo-tag{position:absolute;z-index:4;font-family:var(--f-mono);font-size:.68rem;letter-spacing:.08em;color:var(--bronze);background:rgba(251,246,238,.75);border:1px solid var(--line);padding:4px 8px;border-radius:6px;animation:float 6s ease-in-out infinite}
+.holo-tag.t1{top:20%;left:0}.holo-tag.t2{top:58%;right:-2%;animation-delay:-2s}.holo-tag.t3{top:78%;left:6%;animation-delay:-4s}
+@keyframes float{50%{transform:translateY(-10px)}}
+@media (max-width:900px){.hero .wrap{grid-template-columns:1fr}.holo{max-width:520px;margin:0 auto;width:100%}}
+
+/* reveal system */
+.anim .reveal{opacity:0;transform:translateY(46px) scale(.97);filter:blur(8px);transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1.1s cubic-bezier(.2,.7,.2,1),filter 1s;transition-delay:var(--d,0s)}
+.anim .reveal.in{opacity:1;transform:none;filter:none}
+.anim .reveal.from-left{transform:translateX(-70px) rotateY(18deg)}
+.anim .reveal.from-right{transform:translateX(70px) rotateY(-18deg)}
+.anim .reveal.from-left.in,.anim .reveal.from-right.in{transform:none}
+.anim .title-split .w{display:inline-block;overflow:hidden;vertical-align:bottom}
+.anim .title-split .w>span{display:inline-block;transform:translateY(105%);transition:transform .9s cubic-bezier(.2,.8,.2,1);transition-delay:calc(var(--i)*70ms)}
+.anim .title-split.in .w>span{transform:none}
+
+/* pop + tilt surfaces */
+.pop{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);position:relative;transform-style:preserve-3d;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s;will-change:transform}
+.pop::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(245,215,166,.75),transparent 45%);opacity:0;transition:opacity .3s}
+.pop:hover{box-shadow:0 26px 60px -18px rgba(126,83,40,.45),0 0 0 1px rgba(193,154,107,.5)}
+.pop:hover::before{opacity:1}
+.pop>*{position:relative}
+
+/* pillars */
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;perspective:1200px}
+.pillar{padding:30px 26px 28px;display:grid;gap:12px;align-content:start}
+.pillar .glyph{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(140deg,var(--glow),var(--camel));box-shadow:inset 0 0 0 1px rgba(255,255,255,.5),0 10px 24px -8px rgba(126,83,40,.5)}
+.pillar .glyph svg{width:28px;height:28px;stroke:var(--bronze);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pillar p{color:var(--ink-soft)}
+.pillar .ex{font-family:var(--f-mono);font-size:.78rem;color:var(--bronze);background:var(--beige);border-radius:10px;padding:10px 12px;line-height:1.5}
+@media (max-width:860px){.pillars{grid-template-columns:1fr}}
+
+/* assembly scene */
+.assembly{height:340vh}
+.assembly-sticky{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;display:grid;place-items:center}
+.asm-caption{position:absolute;top:clamp(70px,12vh,120px);left:0;right:0;text-align:center;display:grid;gap:8px;padding-inline:16px}
+.asm-caption h2{font-size:clamp(1.6rem,3.6vw,2.8rem);transition:opacity .4s}
+.asm-steps{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.asm-steps span{font-family:var(--f-mono);font-size:.7rem;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink-soft);transition:all .3s}
+.asm-steps span.on{background:var(--bronze);color:var(--paper);border-color:var(--bronze)}
+.asm-field{position:relative;width:100%;height:100%;perspective:1100px}
+.asm-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.asm-lines line{stroke:var(--camel);stroke-width:2;stroke-dasharray:6 8;animation:dash 1s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-28}}
+.piece{transition:none!important;position:absolute;left:50%;top:56%;width:min(260px,40vw);padding:20px;margin:0;transform-style:preserve-3d;will-change:transform,opacity}
+.piece .k{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--bronze)}
+.piece h3{margin-block:6px}
+.piece p{font-size:.88rem;color:var(--ink-soft);line-height:1.45}
+@media (max-width:600px){.piece{width:min(190px,46vw);padding:14px}.piece p{font-size:.78rem}.piece h3{font-size:1.05rem}}
+.agent-core{position:absolute;left:50%;top:56%;width:min(300px,62vw);aspect-ratio:1;transform:translate(-50%,-50%) scale(0);display:grid;place-items:center;will-change:transform,opacity}
+.agent-core .ring{position:absolute;border-radius:50%;border:1.5px dashed rgba(126,83,40,.55);inset:0;animation:spin 18s linear infinite}
+.agent-core .ring.r2{inset:11%;border-style:solid;border-color:rgba(193,154,107,.7);border-top-color:transparent;border-bottom-color:transparent;animation-duration:7s;animation-direction:reverse}
+.agent-core .ring.r3{inset:22%;border:1px dotted var(--bronze);animation-duration:12s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.agent-core .orb-core{position:absolute;inset:31%;border-radius:50%;background:radial-gradient(circle at 34% 30%,#FFF1D8,var(--camel) 38%,var(--bronze) 78%,#5A3818);box-shadow:0 0 60px 10px rgba(193,154,107,.7),0 0 140px 30px rgba(245,215,166,.6);animation:breathe 3.5s ease-in-out infinite}
+.agent-core .orb-core::after{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.18) 0 1px,transparent 1px 5px);mix-blend-mode:overlay}
+.agent-core .name{position:absolute;bottom:-14%;left:50%;transform:translateX(-50%);white-space:nowrap;text-align:center;font-family:var(--f-display);font-weight:800;font-size:1.3rem}
+.agent-core .name small{display:block;font-family:var(--f-mono);font-weight:400;font-size:.7rem;color:var(--bronze);letter-spacing:.12em;text-transform:uppercase}
+.flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 56%,rgba(255,244,222,.95),transparent 55%);opacity:0;pointer-events:none}
+.scroll-cue{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-family:var(--f-mono);font-size:.7rem;color:var(--ink-soft);display:flex;flex-direction:column;align-items:center;gap:6px}
+.scroll-cue i{width:1px;height:34px;background:linear-gradient(var(--bronze),transparent);animation:cue 1.6s ease-in-out infinite}
+@keyframes cue{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* flow */
+.flow{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:clamp(20px,5vw,70px);position:relative;padding:clamp(24px,4vw,44px);border-radius:28px;background:linear-gradient(160deg,var(--paper),var(--beige-2));border:1px solid var(--line);overflow:hidden}
+.flow canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.flow>div{position:relative;z-index:1;min-width:0}
+.doc{padding:22px;max-width:300px;justify-self:start}
+.doc .lines{display:grid;gap:7px;margin-top:14px}
+.doc .lines i{display:block;height:7px;border-radius:4px;background:var(--beige-2)}
+.doc .lines i.hl{background:linear-gradient(90deg,var(--glow),var(--camel));animation:hl 2.4s ease-in-out infinite}
+@keyframes hl{50%{opacity:.5}}
+.doc .fname{font-family:var(--f-mono);font-size:.78rem;color:var(--bronze)}
+.mini-core{width:clamp(120px,15vw,170px);aspect-ratio:1;position:relative;display:grid;place-items:center}
+.mini-core .ring{position:absolute;inset:0;border-radius:50%;border:1.5px dashed rgba(126,83,40,.5);animation:spin 14s linear infinite}
+.mini-core .orb-core{width:56%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 34% 30%,#FFF1D8,var(--camel) 40%,var(--bronze) 80%);box-shadow:0 0 40px 6px rgba(193,154,107,.6);transition:box-shadow .3s,transform .3s}
+.mini-core.charged .orb-core{box-shadow:0 0 70px 22px rgba(245,215,166,.95);transform:scale(1.12)}
+.mini-core .lbl{position:absolute;bottom:-30px;font-family:var(--f-mono);font-size:.7rem;color:var(--ink-soft);white-space:nowrap}
+.answer{padding:22px;max-width:340px;justify-self:end;opacity:.35;transform:translateY(10px);transition:opacity .5s,transform .5s}
+.answer.show{opacity:1;transform:none}
+.answer .q{font-size:.85rem;color:var(--ink-soft);margin-bottom:10px}
+.answer .a{min-height:4.8em;font-weight:500}
+.src{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font-family:var(--f-mono);font-size:.72rem;color:var(--bronze);background:var(--beige);border:1px solid var(--line);border-radius:999px;padding:4px 10px;opacity:0;transform:scale(.8);transition:all .4s}
+.answer.cited .src{opacity:1;transform:none}
+.flow-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:26px}
+.flow-steps .pop{padding:20px}
+.flow-steps .n{font-family:var(--f-mono);font-size:.72rem;color:var(--bronze)}
+.flow-steps p{color:var(--ink-soft);font-size:.95rem}
+.tag-example{font-family:var(--f-mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);position:absolute;top:14px;right:18px;z-index:2}
+@media (max-width:820px){.flow{grid-template-columns:1fr;justify-items:center;gap:56px}.doc,.answer{justify-self:center}.flow-steps{grid-template-columns:1fr}}
+
+/* walkthrough */
+.steps{display:grid;gap:18px;counter-reset:s}
+.step{display:grid;grid-template-columns:auto 1fr minmax(0,300px);gap:clamp(16px,3vw,32px);padding:clamp(20px,3vw,30px);align-items:start}
+.step .num{font-family:var(--f-display);font-weight:800;font-size:2.6rem;line-height:1;color:transparent;-webkit-text-stroke:1.5px var(--camel);min-width:2ch}
+.step:hover .num{color:var(--camel)}
+.step h3{margin-bottom:8px}
+.step p{color:var(--ink-soft)}
+.step .click{display:inline-block;margin-top:10px;font-family:var(--f-mono);font-size:.78rem;background:var(--beige);border:1px solid var(--line);border-radius:8px;padding:4px 9px;color:var(--bronze)}
+.mock{border-radius:12px;background:var(--beige);border:1px solid var(--line);padding:12px;font-size:.78rem;display:grid;gap:7px;min-width:0}
+.mock .bar{display:flex;gap:5px}.mock .bar i{width:7px;height:7px;border-radius:50%;background:var(--camel);opacity:.6}
+.mock .row{display:flex;align-items:center;gap:8px;background:var(--paper);border-radius:8px;padding:7px 9px;border:1px solid var(--line);overflow:hidden}
+.mock .row.on{border-color:var(--camel);box-shadow:0 0 0 3px rgba(193,154,107,.25)}
+.mock .row b{font-weight:600}
+.mock .dot{width:8px;height:8px;border-radius:50%;background:var(--bronze);flex:none}
+.mock .tog{margin-left:auto;width:26px;height:14px;border-radius:7px;background:var(--bronze);position:relative;flex:none}
+.mock .tog::after{content:"";position:absolute;right:2px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--paper)}
+@media (max-width:860px){.step{grid-template-columns:auto 1fr}.step .mock{grid-column:1/-1}}
+
+.template{margin-top:34px;padding:clamp(20px,3vw,30px);display:grid;gap:14px}
+.template-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+pre{margin:0;font-family:var(--f-mono);font-size:.82rem;line-height:1.65;background:#3A2A1D;color:#F3E6D2;border-radius:14px;padding:20px;overflow-x:auto;white-space:pre-wrap}
+pre .c{color:#D9B47F}
+
+/* compare */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:22px;perspective:1200px}
+.cmp{padding:clamp(22px,3vw,34px);display:grid;gap:16px;align-content:start}
+.cmp.studio{background:linear-gradient(160deg,#4A3424,#2F2117);color:#F3E6D2;border-color:transparent}
+.cmp.studio .eyebrow{color:var(--glow)}
+.cmp.studio li::before{background:var(--glow)}
+.cmp ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.cmp li{padding-left:22px;position:relative}
+.cmp li::before{content:"";position:absolute;left:0;top:.62em;width:9px;height:9px;border-radius:50%;background:var(--camel)}
+.cmp .best{font-family:var(--f-mono);font-size:.78rem;padding:10px 12px;border-radius:10px;background:rgba(193,154,107,.18)}
+@media (max-width:820px){.compare{grid-template-columns:1fr}}
+
+/* launch */
+.launch{background:radial-gradient(ellipse at 50% 30%,#FBF1E0,var(--beige-2) 70%);border-block:1px solid var(--line);overflow:hidden}
+.stage{position:relative;min-height:560px;display:grid;place-items:center;margin-top:20px}
+.demo-badge{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--bronze);border:1px dashed var(--brown);border-radius:999px;padding:5px 12px}
+.demo-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--bronze);animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.2}}
+.lrings{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.lrings i{position:absolute;width:120px;height:120px;border-radius:50%;border:2px solid var(--camel);opacity:0}
+.stage.go .lrings i{animation:ring 1.6s cubic-bezier(.1,.6,.3,1) forwards}
+.stage.go .lrings i:nth-child(2){animation-delay:.18s;border-color:var(--bronze)}
+.stage.go .lrings i:nth-child(3){animation-delay:.36s}
+.stage.go .lrings i:nth-child(4){animation-delay:.54s;border-style:dashed}
+@keyframes ring{0%{transform:scale(.4);opacity:1}100%{transform:scale(9);opacity:0}}
+.sweep{position:absolute;inset:-20%;background:linear-gradient(100deg,transparent 40%,rgba(255,246,228,.95) 50%,transparent 60%);transform:translateX(-100%);pointer-events:none;z-index:5}
+.stage.go .sweep{animation:sweep 1.1s .5s ease-in-out forwards}
+@keyframes sweep{to{transform:translateX(100%)}}
+.launch-btn{position:relative;z-index:3;width:190px;height:190px;border-radius:50%;border:0;color:var(--paper);font-family:var(--f-display);font-weight:800;font-size:1.15rem;line-height:1.15;background:radial-gradient(circle at 35% 30%,#E7C08C,var(--brown) 45%,var(--bronze));box-shadow:0 0 0 10px rgba(193,154,107,.25),0 0 0 22px rgba(193,154,107,.12),0 20px 50px rgba(126,83,40,.45);transition:transform .4s,opacity .4s}
+.launch-btn:hover{transform:scale(1.06)}
+.launch-btn::before{content:"";position:absolute;inset:-34px;border-radius:50%;border:1.5px dashed var(--camel);animation:spin 16s linear infinite}
+.stage.go .launch-btn{transform:scale(.2);opacity:0;pointer-events:none}
+.assistant{position:absolute;z-index:4;width:min(560px,100%);opacity:0;transform:translateY(40px) scale(.9) rotateX(14deg);transition:opacity .8s,transform 1s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.stage.done .assistant{opacity:1;transform:none;pointer-events:auto}
+.assistant .top{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.assistant .av{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 34% 30%,#FFF1D8,var(--camel) 40%,var(--bronze) 80%);box-shadow:0 0 20px rgba(193,154,107,.7);flex:none}
+.assistant .top b{font-family:var(--f-display);font-size:1.1rem;display:block;line-height:1.1}
+.assistant .top small{color:var(--ink-soft);font-size:.8rem}
+.assistant .top .demo-badge{margin-left:auto;font-size:.6rem;padding:3px 8px}
+.chat{padding:16px 18px;display:grid;gap:10px;min-height:220px;max-height:340px;overflow-y:auto}
+.msg{max-width:86%;padding:10px 14px;border-radius:14px;font-size:.92rem;line-height:1.45;animation:msgIn .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes msgIn{from{opacity:0;transform:translateY(12px) scale(.96)}}
+.msg.u{justify-self:end;background:var(--bronze);color:var(--paper);border-bottom-right-radius:4px}
+.msg.b{justify-self:start;background:var(--beige);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg.b .src{opacity:1;transform:none;margin-top:8px}
+.typing{display:inline-flex;gap:4px}.typing i{width:6px;height:6px;border-radius:50%;background:var(--brown);animation:bounce 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bounce{50%{transform:translateY(-5px)}}
+.starters{display:flex;gap:8px;flex-wrap:wrap;padding:0 18px 18px}
+.starters button{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 12px;font-size:.82rem;color:var(--ink);transition:transform .2s,background .2s}
+.starters button:hover{transform:translateY(-2px);background:var(--glow)}
+.replay{position:absolute;bottom:0;left:50%;transform:translateX(-50%);z-index:6;opacity:0;pointer-events:none;transition:opacity .4s}
+.stage.done .replay{opacity:1;pointer-events:auto}
+
+/* presenter kit */
+.kit{display:grid;grid-template-columns:1.2fr 1fr;gap:22px}
+.kit .pop{padding:clamp(22px,3vw,30px)}
+.timeline{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:0}
+.timeline li{display:grid;grid-template-columns:78px 1fr;gap:14px;padding:12px 0;border-top:1px solid var(--line)}
+.timeline time{font-family:var(--f-mono);font-size:.8rem;color:var(--bronze);font-variant-numeric:tabular-nums;padding-top:2px}
+.timeline b{display:block}
+.timeline span{color:var(--ink-soft);font-size:.93rem}
+.qa{display:grid;gap:10px;margin-top:16px}
+details{border:1px solid var(--line);border-radius:12px;background:var(--beige);padding:12px 14px;transition:background .2s}
+details[open]{background:var(--paper)}
+summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:10px}
+summary::after{content:"+";font-family:var(--f-mono);color:var(--bronze);transition:transform .3s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{margin-top:8px;color:var(--ink-soft);font-size:.94rem}
+.copy-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+@media (max-width:860px){.kit{grid-template-columns:1fr}}
+
+/* presenter notes */
+.note{display:none;margin-top:18px;border-left:3px solid var(--camel);background:rgba(251,246,238,.85);padding:12px 16px;border-radius:0 12px 12px 0;font-size:.92rem;color:var(--ink);max-width:70ch}
+.note::before{content:"Presenter note";display:block;font-family:var(--f-mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--bronze);margin-bottom:4px}
+.show-notes .note{display:block}
+
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translate(-50%,30px);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:999px;font-size:.88rem;opacity:0;transition:all .35s;z-index:60;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+footer{padding-block:50px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:.88rem}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .anim .reveal,.anim .title-split .w>span{opacity:1!important;transform:none!important;filter:none!important}
+  .assembly{height:auto}.assembly-sticky{position:relative;height:auto;min-height:100vh}
+}
+</style>
+
+<div class="progress" id="progress"></div>
+<div class="ambient" aria-hidden="true"><div class="grain"></div><div class="orb a" data-speed="-0.15"></div><div class="orb b" data-speed="0.12"></div><div class="orb c" data-speed="-0.3"></div></div>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top"><i></i>Agent Studio Session</a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#parts">Parts</a><a href="#flow">How it works</a><a href="#build">Build it</a><a href="#studio">Copilot Studio</a><a href="#launch">Launch</a><a href="#kit">Presenter kit</a>
+      <button class="chip-btn" id="notesBtn" aria-pressed="false" title="Show presenter notes (N)">Notes</button>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <span class="eyebrow reveal">Live session · Microsoft 365 Copilot app</span>
+        <h1 class="title-split reveal">Build your own <em>AI agent</em> in Copilot</h1>
+        <p class="lede reveal" style="--d:.15s">An agent is a version of Copilot that knows one job, reads the files you choose and follows your rules. Today we build one together in about ten minutes, with no code.</p>
+        <div class="hero-ctas reveal" style="--d:.3s">
+          <a class="btn primary" href="#parts">Start the walkthrough</a>
+          <a class="btn ghost" href="#launch">Jump to the launch demo</a>
+        </div>
+        <div class="hero-meta reveal" style="--d:.45s">
+          <div><b>3</b>parts to every agent</div>
+          <div><b>7</b>steps to build it</div>
+          <div><b>0</b>lines of code</div>
+        </div>
+        <p class="note">Open with the hologram. Move the mouse so it follows you, switch to Neural Core and click it once. Then say: "This is what we're building today. Not a chatbot that knows everything, but an assistant that knows our work."</p>
+      </div>
+      <div class="holo reveal" style="--d:.2s" id="holo">
+        <div class="beam"></div><div class="projector"></div><div class="scan"></div>
+        <span class="holo-hint">Click to send a pulse</span>
+        <span class="holo-tag t1">PURPOSE</span><span class="holo-tag t2">KNOWLEDGE</span><span class="holo-tag t3">INSTRUCTIONS</span>
+        <div class="holo-ui" role="group" aria-label="Hologram shape">
+          <button class="chip-btn" data-mode="0" aria-pressed="true">Sphere</button>
+          <button class="chip-btn" data-mode="1" aria-pressed="false">Neural Core</button>
+          <button class="chip-btn" data-mode="2" aria-pressed="false">Orbit</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PILLARS -->
+  <section class="sec" id="parts">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow reveal">Part one · What an agent is made of</span>
+        <h2 class="title-split reveal">Three parts, one assistant</h2>
+        <p class="lede reveal" style="--d:.1s">Every agent you create in Copilot is built from the same three ingredients. Get these right and the rest is clicking buttons.</p>
+      </div>
+      <div class="pillars">
+        <article class="pillar pop tilt reveal from-left" style="--d:0s">
+          <div class="glyph"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/></svg></div>
+          <span class="eyebrow">01 · Purpose</span>
+          <h3>What job does it do?</h3>
+          <p>One clear task for one group of people. Narrow agents give better answers than "help with everything".</p>
+          <div class="ex">"Answer staff questions about leave and travel policy."</div>
+        </article>
+        <article class="pillar pop tilt reveal" style="--d:.25s">
+          <div class="glyph"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h7"/></svg></div>
+          <span class="eyebrow">02 · Knowledge</span>
+          <h3>What should it read?</h3>
+          <p>SharePoint sites, folders, files or approved websites. The agent answers from these sources and shows where the answer came from.</p>
+          <div class="ex">HR Policies site · Leave-Policy-2026.docx</div>
+        </article>
+        <article class="pillar pop tilt reveal from-right" style="--d:.5s">
+          <div class="glyph"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/><path d="m16 16 2 2 4-4"/></svg></div>
+          <span class="eyebrow">03 · Instructions</span>
+          <h3>How should it behave?</h3>
+          <p>Tone, format, limits and what to do when it doesn't know. Written in plain sentences, like briefing a new colleague.</p>
+          <div class="ex">"Keep answers under 80 words. Always cite the policy."</div>
+        </article>
+      </div>
+      <p class="note">Ask the room: "If you had an assistant that only knew one part of your job, which part would you pick?" Take two answers and use one as the running example if it fits.</p>
+    </div>
+  </section>
+
+  <!-- ASSEMBLY -->
+  <section class="assembly" id="assembly" aria-label="The three parts combine into one agent">
+    <div class="assembly-sticky">
+      <div class="asm-field" id="asmField">
+        <svg class="asm-lines" id="asmLines" aria-hidden="true"><line/><line/><line/></svg>
+        <div class="flash" id="asmFlash"></div>
+        <article class="piece pop" data-k="0"><span class="k">Purpose</span><h3>Policy Helper</h3><p>Answers leave and travel questions for all staff.</p></article>
+        <article class="piece pop" data-k="1"><span class="k">Knowledge</span><h3>HR Policies site</h3><p>12 policy documents on SharePoint, kept up to date by HR.</p></article>
+        <article class="piece pop" data-k="2"><span class="k">Instructions</span><h3>Short, cited, polite</h3><p>Under 80 words. Cite the document. Refer edge cases to HR.</p></article>
+        <div class="agent-core" id="asmCore"><i class="ring"></i><i class="ring r2"></i><i class="ring r3"></i><i class="orb-core"></i><div class="name"><small>Agent ready</small>Policy Helper</div></div>
+      </div>
+      <div class="asm-caption">
+        <span class="eyebrow">Scroll to assemble</span>
+        <h2 id="asmTitle">Every agent starts as three parts</h2>
+        <div class="asm-steps" id="asmSteps"><span class="on">Purpose</span><span>Knowledge</span><span>Instructions</span><span>Agent</span></div>
+      </div>
+      <div class="scroll-cue" id="asmCue">keep scrolling<i></i></div>
+    </div>
+  </section>
+
+  <!-- FLOW -->
+  <section class="sec" id="flow">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow reveal">Part two · How it works</span>
+        <h2 class="title-split reveal">From your files to a cited answer</h2>
+        <p class="lede reveal" style="--d:.1s">When someone asks a question, the agent looks through the knowledge you gave it, picks the relevant passages and writes an answer that points back to its source.</p>
+      </div>
+      <div class="flow reveal" id="flowBox">
+        <canvas id="flowCanvas" aria-hidden="true"></canvas>
+        <span class="tag-example">Example</span>
+        <div class="doc pop tilt" id="flowDoc">
+          <span class="fname">Leave-Policy-2026.docx</span>
+          <h3 style="margin-top:6px">Section 4 · Carry-over</h3>
+          <div class="lines"><i style="width:92%"></i><i style="width:78%"></i><i class="hl" style="width:88%"></i><i class="hl" style="width:64%"></i><i style="width:82%"></i><i style="width:50%"></i></div>
+        </div>
+        <div class="mini-core" id="flowCore"><i class="ring"></i><i class="orb-core"></i><span class="lbl">Policy Helper</span></div>
+        <div class="answer pop" id="flowAnswer">
+          <p class="q">"Can I carry over unused leave?"</p>
+          <p class="a" id="flowText"></p>
+          <span class="src">Leave-Policy-2026.docx · Section 4</span>
+        </div>
+      </div>
+      <div class="flow-steps">
+        <div class="pop tilt reveal" style="--d:0s"><span class="n">1 · Search</span><h3>Finds the right passage</h3><p>Only in the sources you added, and only content the person asking is already allowed to open.</p></div>
+        <div class="pop tilt reveal" style="--d:.2s"><span class="n">2 · Follow the brief</span><h3>Applies your instructions</h3><p>Length, tone, format and the "I don't know, ask HR" rule all come from what you wrote.</p></div>
+        <div class="pop tilt reveal" style="--d:.4s"><span class="n">3 · Answer with a source</span><h3>Shows its working</h3><p>Each answer links to the document it used, so people can check it in one click.</p></div>
+      </div>
+      <p class="note">Point at the glowing lines in the document. "It doesn't make up the policy. It reads the policy. That's why knowledge is the most important part to get right."</p>
+    </div>
+  </section>
+
+  <!-- BUILD -->
+  <section class="sec" id="build" style="background:linear-gradient(to bottom,transparent,rgba(232,219,198,.6) 15%,rgba(232,219,198,.6) 85%,transparent)">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow reveal">Part three · Live build</span>
+        <h2 class="title-split reveal">Build it in the Copilot app</h2>
+        <p class="lede reveal" style="--d:.1s">These are the steps in the Microsoft 365 Copilot app on your work laptop. Button names can shift slightly between updates, but the flow stays the same.</p>
+      </div>
+      <div class="steps">
+        <article class="step pop tilt reveal">
+          <span class="num">1</span>
+          <div><h3>Open Copilot and sign in</h3><p>Launch the Microsoft 365 Copilot app and make sure you're signed in with your work account, not a personal one.</p><span class="click">Microsoft 365 Copilot app → Work account</span></div>
+          <div class="mock" aria-hidden="true"><div class="bar"><i></i><i></i><i></i></div><div class="row on"><span class="dot"></span><b>Copilot</b><span style="margin-left:auto;color:var(--ink-soft)">Work</span></div><div class="row">Chat</div><div class="row">Agents</div></div>
+        </article>
+        <article class="step pop tilt reveal">
+          <span class="num">2</span>
+          <div><h3>Go to Agents and create a new one</h3><p>In the left pane, open Agents, then choose Create agent. This opens the agent builder with a live preview on the right.</p><span class="click">Agents → Create agent</span></div>
+          <div class="mock" aria-hidden="true"><div class="row">Chat</div><div class="row on"><span class="dot"></span><b>Agents</b></div><div class="row" style="justify-content:center;background:var(--bronze);color:var(--paper)">+ Create agent</div></div>
+        </article>
+        <article class="step pop tilt reveal">
+          <span class="num">3</span>
+          <div><h3>Describe what you want</h3><p>On the Describe tab, write the purpose in plain language. Copilot drafts the name, description and instructions for you.</p><span class="click">Describe tab → type your request</span></div>
+          <div class="mock" aria-hidden="true"><div class="row on" style="align-items:flex-start;white-space:normal;line-height:1.4">"Create an agent that answers staff questions about leave and travel using the HR Policies site. Keep answers short and cite the policy."</div></div>
+        </article>
+        <article class="step pop tilt reveal">
+          <span class="num">4</span>
+          <div><h3>Check the Configure tab and add knowledge</h3><p>Review the name, description and instructions. Under Knowledge, add the SharePoint site, folder or files it should read. If the option is offered, limit answers to those sources only.</p><span class="click">Configure → Knowledge → add SharePoint</span></div>
+          <div class="mock" aria-hidden="true"><div class="row"><b>Name</b>&nbsp;Policy Helper</div><div class="row on"><span class="dot"></span>HR Policies (SharePoint)</div><div class="row">Only use specified sources<span class="tog"></span></div></div>
+        </article>
+        <article class="step pop tilt reveal">
+          <span class="num">5</span>
+          <div><h3>Add starter prompts and capabilities</h3><p>Add three starter prompts so people know what to ask. Turn on extra capabilities, such as the code interpreter or image generator, only if the job needs them.</p><span class="click">Configure → Starter prompts</span></div>
+          <div class="mock" aria-hidden="true"><div class="row">How many leave days can I carry over?</div><div class="row">What can I claim for a work trip?</div><div class="row">Who approves my time off?</div></div>
+        </article>
+        <article class="step pop tilt reveal">
+          <span class="num">6</span>
+          <div><h3>Test it in the preview pane</h3><p>Ask your starter prompts in the preview on the right. Check that each answer cites a real document. If it rambles or guesses, tighten the instructions and test again.</p><span class="click">Right pane → Test</span></div>
+          <div class="mock" aria-hidden="true"><div class="row" style="justify-content:flex-end;background:var(--bronze);color:var(--paper)">Can I carry over leave?</div><div class="row" style="white-space:normal;line-height:1.4">Up to 5 days, used by 31 March. <b style="color:var(--bronze)">[1]</b></div></div>
+        </article>
+        <article class="step pop tilt reveal">
+          <span class="num">7</span>
+          <div><h3>Create and share</h3><p>Select Create. Then choose who can use it: only you, specific people or your whole organisation, depending on what your admin allows. Copy the link and send it to your team.</p><span class="click">Create → Share → Copy link</span></div>
+          <div class="mock" aria-hidden="true"><div class="row">Only you</div><div class="row on"><span class="dot"></span><b>Specific people</b></div><div class="row">Anyone in your organisation</div></div>
+        </article>
+      </div>
+
+      <div class="template pop reveal">
+        <div class="template-head">
+          <div><span class="eyebrow">Paste into the Instructions box</span><h3 style="margin-top:4px">Instructions template</h3></div>
+          <button class="btn ghost" data-copy="tplText">Copy template</button>
+        </div>
+<pre id="tplText"><span class="c"># Role</span>
+You are Policy Helper, an assistant for all staff.
+You answer questions about leave and travel policy.
+
+<span class="c"># Sources</span>
+Answer only from the documents in the HR Policies site.
+Always name the document and section you used.
+
+<span class="c"># Style</span>
+Keep answers under 80 words. Use plain language.
+Use a short bulleted list when there are steps.
+
+<span class="c"># Limits</span>
+If the answer is not in the documents, say so and suggest
+contacting the HR team. Never guess dates or amounts.
+Do not give advice about individual employment cases.</pre>
+      </div>
+      <p class="note">Do steps 2 to 6 live on screen. Keep this page in a second tab for the template. If the Wi-Fi or the app misbehaves, use the launch demo below as your backup.</p>
+    </div>
+  </section>
+
+  <!-- STUDIO -->
+  <section class="sec" id="studio">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow reveal">Part four · When to move up</span>
+        <h2 class="title-split reveal">Copilot app or Copilot Studio?</h2>
+        <p class="lede reveal" style="--d:.1s">Start in the Copilot app. Move to Copilot Studio when the agent needs to take actions or live outside Copilot.</p>
+      </div>
+      <div class="compare">
+        <article class="cmp pop tilt reveal from-left">
+          <span class="eyebrow">Agent builder in the Copilot app</span>
+          <h3>Fast, simple, for everyone</h3>
+          <ul>
+            <li>Built in minutes from a plain-language description</li>
+            <li>Answers from SharePoint, files and approved websites</li>
+            <li>Lives inside Microsoft 365 Copilot and Teams chat</li>
+            <li>Shared with a link, no admin project needed</li>
+          </ul>
+          <p class="best">Best for: Q&amp;A over documents, team helpers, onboarding guides</p>
+        </article>
+        <article class="cmp studio pop tilt reveal from-right" style="--d:.2s">
+          <span class="eyebrow">Copilot Studio</span>
+          <h3>More control, more power</h3>
+          <ul>
+            <li>Actions through connectors and Power Automate flows</li>
+            <li>Guided conversation topics with branching steps</li>
+            <li>Publish to Teams, a website or other channels</li>
+            <li>Analytics, environments and admin governance</li>
+          </ul>
+          <p class="best">Best for: booking, ticket logging, approvals, customer-facing bots</p>
+        </article>
+      </div>
+      <p class="note">Keep this short. The message is: you don't need Studio to start. If your app shows a "Copy to Copilot Studio" option on an agent, mention that the agent can grow later without starting over.</p>
+    </div>
+  </section>
+
+  <!-- LAUNCH -->
+  <section class="sec launch" id="launch">
+    <div class="wrap">
+      <div class="sec-head" style="margin-inline:auto;text-align:center;justify-items:center">
+        <span class="demo-badge reveal">Demonstration · simulated responses</span>
+        <h2 class="title-split reveal">Activate the agent</h2>
+        <p class="lede reveal" style="--d:.1s">Press the button to bring Policy Helper online. The chat below is a scripted demo of what your finished agent looks like.</p>
+      </div>
+      <div class="stage reveal" id="stage">
+        <div class="lrings" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="sweep" aria-hidden="true"></div>
+        <button class="launch-btn" id="launchBtn">Activate<br>the agent</button>
+        <div class="assistant pop" id="assistant" aria-live="polite">
+          <div class="top"><span class="av"></span><div><b>Policy Helper</b><small>Answers from HR Policies</small></div><span class="demo-badge">Demo</span></div>
+          <div class="chat" id="chat"></div>
+          <div class="starters" id="starters">
+            <button data-q="0">How many leave days can I carry over?</button>
+            <button data-q="1">What can I claim for a work trip?</button>
+            <button data-q="2">Who approves my time off?</button>
+          </div>
+        </div>
+        <button class="chip-btn replay" id="replayBtn">Replay launch</button>
+      </div>
+      <p class="note" style="margin-inline:auto">Click Activate, let the rings finish, then click one starter prompt. Remind people these answers are scripted for the demo. Their real agent answers from their own documents.</p>
+    </div>
+  </section>
+
+  <!-- KIT -->
+  <section class="sec" id="kit">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow reveal">For the presenter</span>
+        <h2 class="title-split reveal">Presenter kit</h2>
+        <p class="lede reveal" style="--d:.1s">A 15-minute run of show, answers to the questions you'll likely get, and text you can copy into your notes or an email.</p>
+      </div>
+      <div class="kit">
+        <div class="pop reveal from-left">
+          <span class="eyebrow">Run of show · 15 minutes</span>
+          <ol class="timeline">
+            <li><time>00:00</time><div><b>Hook</b><span>Hologram, switch shapes, send a pulse.</span></div></li>
+            <li><time>02:00</time><div><b>Three parts</b><span>Purpose, knowledge, instructions. Scroll the assembly.</span></div></li>
+            <li><time>05:00</time><div><b>How it works</b><span>Document to cited answer.</span></div></li>
+            <li><time>07:00</time><div><b>Live build</b><span>Steps 2 to 6 in the real Copilot app.</span></div></li>
+            <li><time>12:00</time><div><b>Copilot Studio</b><span>When to move up, in one minute.</span></div></li>
+            <li><time>13:00</time><div><b>Launch and Q&amp;A</b><span>Activate the agent, then questions.</span></div></li>
+          </ol>
+          <div class="copy-row">
+            <button class="btn primary" data-copy="talkTrack">Copy talk track</button>
+            <button class="btn ghost" data-copy="followUp">Copy follow-up email</button>
+          </div>
+        </div>
+        <div class="pop reveal from-right" style="--d:.2s">
+          <span class="eyebrow">Likely questions</span>
+          <div class="qa">
+            <details><summary>Can the agent see my emails or private files?</summary><p>It uses the knowledge you add to it. People only get answers from content they already have permission to open, so a shared agent doesn't expose files to people who couldn't see them before.</p></details>
+            <details><summary>Do I need a special licence?</summary><p>Creating and sharing agents depends on your organisation's Copilot licences and admin settings. If you don't see Create agent, ask IT whether it's enabled for you.</p></details>
+            <details><summary>What if it gives a wrong answer?</summary><p>Check the cited source first. Usually the document is out of date or the instructions are too loose. Update the file or tighten the instructions and test again.</p></details>
+            <details><summary>Can it send emails or book things?</summary><p>Not from the basic agent builder. Actions like that need Copilot Studio with connectors or flows.</p></details>
+            <details><summary>Who can edit the agent after I share it?</summary><p>You stay the owner. Sharing lets people use it; editing stays with you unless you hand it over.</p></details>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer><div class="wrap"><span>Agent Studio Session · Built for an internal Copilot walkthrough</span><span>Press <b>N</b> for presenter notes · <b>F</b> for full screen</span></div></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<textarea id="talkTrack" hidden>TALK TRACK: BUILD YOUR OWN AGENT IN COPILOT (15 min)
+
+00:00 Hook
+"This is what we're building today. Not a chatbot that knows everything, but an assistant that knows our work."
+
+02:00 Three parts
+Every agent has a Purpose (one job for one group), Knowledge (the files it reads) and Instructions (how it behaves). Ask: "Which part of your job would you hand to an assistant?"
+
+05:00 How it works
+It searches only the sources you add, follows your brief, and answers with a link to the document it used. It reads the policy; it doesn't make it up.
+
+07:00 Live build (Microsoft 365 Copilot app)
+1. Open the app, check you're on your work account.
+2. Agents > Create agent.
+3. Describe tab: type the purpose in plain language.
+4. Configure tab: check name, description, instructions; add SharePoint knowledge.
+5. Add three starter prompts.
+6. Test in the preview pane; tighten instructions if needed.
+7. Create > Share > Copy link.
+
+12:00 Copilot Studio
+Start in the Copilot app. Move to Copilot Studio when the agent needs actions (connectors, flows), guided topics, or publishing to other channels.
+
+13:00 Launch and Q&A
+Activate the demo agent, click a starter prompt, then take questions.</textarea>
+<textarea id="followUp" hidden>Subject: Build your own Copilot agent: steps from today's session
+
+Hi all,
+
+Thanks for joining today. Here are the steps to build your own agent in the Microsoft 365 Copilot app:
+
+1. Open the Microsoft 365 Copilot app and sign in with your work account.
+2. In the left pane, open Agents and choose Create agent.
+3. On the Describe tab, explain the agent's job in plain language.
+4. On the Configure tab, check the instructions and add the SharePoint sites or files it should use.
+5. Add three starter prompts.
+6. Test it in the preview pane and refine the instructions.
+7. Select Create, then share it with your team.
+
+Tip: one clear job, trusted documents and short instructions make the best agents.
+
+If you don't see Create agent, check with IT whether it's enabled for your account.
+
+Best regards</textarea>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+document.documentElement.classList.add('anim');
+const $ = (s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t;
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const seg=(p,a,b)=>clamp((p-a)/(b-a),0,1);
+
+/* ---------- split titles into words ---------- */
+$$('.title-split').forEach(el=>{
+  const walk=(node)=>{ [...node.childNodes].forEach(n=>{
+    if(n.nodeType===3){
+      const frag=document.createDocumentFragment();
+      n.textContent.split(/(\s+)/).forEach(part=>{
+        if(!part) return;
+        if(/^\s+$/.test(part)){frag.appendChild(document.createTextNode(part));return;}
+        const w=document.createElement('span');w.className='w';
+        const s=document.createElement('span');s.textContent=part;w.appendChild(s);frag.appendChild(w);
+      });
+      n.replaceWith(frag);
+    } else if(n.nodeType===1) walk(n);
+  });};
+  walk(el);
+  $$('.w>span',el).forEach((s,i)=>s.style.setProperty('--i',i));
+});
+
+/* ---------- reveal on scroll ---------- */
+const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){const el=e.target;el.classList.add('in');io.unobserve(el);
+    if(el.classList.contains('pop')) setTimeout(()=>el.classList.remove('reveal'),1300+parseFloat(getComputedStyle(el).getPropertyValue('--d')||0)*1000);} }),{threshold:.12,rootMargin:'0px 0px -6% 0px'});
+$$('.reveal').forEach(el=>io.observe(el));
+
+/* ---------- tilt + highlight ---------- */
+if(!reduce && matchMedia('(hover:hover)').matches){
+  $$('.pop').forEach(el=>{
+    const tilt=el.classList.contains('tilt');
+    el.addEventListener('pointermove',e=>{
+      const r=el.getBoundingClientRect(), x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
+      el.style.setProperty('--mx',x*100+'%');el.style.setProperty('--my',y*100+'%');
+      if(tilt) el.style.transform=`perspective(900px) rotateX(${(.5-y)*9}deg) rotateY(${(x-.5)*11}deg) translateY(-8px) scale(1.025)`;
+    });
+    el.addEventListener('pointerleave',()=>{ if(tilt) el.style.transform=''; });
+    if(!tilt) el.addEventListener('pointerenter',()=>{});
+  });
+}
+// pop-up for non-tilt boxes handled in CSS hover via transform on .pop:hover (pieces excluded)
+const style=document.createElement('style');
+style.textContent='.pop:not(.tilt):not(.piece):not(.assistant):hover{transform:translateY(-8px) scale(1.02)}';
+document.head.appendChild(style);
+
+/* ---------- progress + parallax ---------- */
+const prog=$('#progress'), orbs=$$('.orb');
+function onScroll(){
+  const h=document.documentElement.scrollHeight-innerHeight;
+  prog.style.transform=`scaleX(${h>0?scrollY/h:0})`;
+  if(!reduce) orbs.forEach(o=>o.style.transform=`translate3d(0,${scrollY*parseFloat(o.dataset.speed)}px,0)`);
+  assembly();
+}
+addEventListener('scroll',onScroll,{passive:true});
+
+/* ---------- notes + keys ---------- */
+const notesBtn=$('#notesBtn');
+function toggleNotes(){const on=document.body.classList.toggle('show-notes');notesBtn.setAttribute('aria-pressed',on);toast(on?'Presenter notes shown':'Presenter notes hidden');}
+notesBtn.addEventListener('click',toggleNotes);
+addEventListener('keydown',e=>{
+  if(e.target.closest('input,textarea')) return;
+  if(e.key==='n'||e.key==='N') toggleNotes();
+  if(e.key==='f'||e.key==='F'){ const d=document.documentElement; if(!document.fullscreenElement) d.requestFullscreen?.().catch(()=>toast('Full screen is not available here')); else document.exitFullscreen?.(); }
+});
+
+/* ---------- copy ---------- */
+const toastEl=$('#toast');let tt;
+function toast(m){toastEl.textContent=m;toastEl.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>toastEl.classList.remove('on'),1800);}
+$$('[data-copy]').forEach(b=>b.addEventListener('click',()=>{
+  const src=document.getElementById(b.dataset.copy); const text=src.value!==undefined?src.value:src.innerText;
+  const fallback=()=>{ const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Copied');}catch(_){toast('Select the text and copy it manually');}ta.remove(); };
+  if(navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(()=>toast('Copied to clipboard'),fallback); else fallback();
+}));
+
+/* ---------- assembly scene ---------- */
+const asm=$('#assembly'), pieces=$$('.piece'), core=$('#asmCore'), lines=$$('#asmLines line'), flash=$('#asmFlash'), title=$('#asmTitle'), stepsEl=$$('#asmSteps span'), cue=$('#asmCue');
+const titles=['Every agent starts as three parts','Purpose: one clear job','Knowledge: the files it reads','Instructions: how it behaves','Combined in the agent builder','One agent, ready to answer'];
+let lastTitle=-1;
+function assembly(){
+  if(reduce){ pieces.forEach(p=>p.style.opacity=0); core.style.transform='translate(-50%,-50%) scale(1)'; title.textContent=titles[5]; stepsEl.forEach(s=>s.classList.add('on')); cue.style.opacity=0; return; }
+  const r=asm.getBoundingClientRect(), total=r.height-innerHeight;
+  const p=clamp(-r.top/total,0,1);
+  const W=innerWidth, H=innerHeight, R=Math.min(W*.3,330), narrow=W<600;
+  const form=[[-R,narrow?-H*.12:-H*.08],[R,narrow?-H*.12:-H*.08],[0,narrow?H*.17:H*.2]];
+  const start=[[-W*.75,-H*.1,70,0],[W*.75,-H*.05,-70,0],[0,H*.8,0,60]];
+  const fieldR=$('#asmField').getBoundingClientRect(), cx=fieldR.width/2, cy=fieldR.height*.56;
+  pieces.forEach((el,i)=>{
+    const a=ease(seg(p,.04+i*.1,.28+i*.1));        // fly in, one by one
+    const b=ease(seg(p,.52,.7));                    // converge
+    let x=lerp(start[i][0],form[i][0],a), y=lerp(start[i][1],form[i][1],a);
+    let ry=lerp(start[i][2],0,a), rx=lerp(start[i][3],0,a);
+    x=lerp(x,0,b); y=lerp(y,0,b);
+    const s=lerp(1,.25,b), rz=b*(i-1)*40, z=Math.sin(p*6+i)*20;
+    el.style.transform=`translate(-50%,-50%) translate3d(${x}px,${y}px,${z}px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg) scale(${s})`;
+    el.style.opacity=Math.min(a*1.4,1)*(1-seg(p,.62,.7));
+    const ln=lines[i]; ln.setAttribute('x1',cx+x);ln.setAttribute('y1',cy+y);ln.setAttribute('x2',cx);ln.setAttribute('y2',cy);
+    ln.style.opacity=seg(p,.38,.46)*(1-seg(p,.6,.66));
+  });
+  const c=ease(seg(p,.64,.82));
+  core.style.transform=`translate(-50%,-50%) scale(${c}) rotate(${(1-c)*-90}deg)`;
+  core.style.opacity=c;
+  flash.style.opacity=Math.sin(seg(p,.62,.78)*Math.PI);
+  const t=p<.06?0:p<.18?1:p<.28?2:p<.5?3:p<.72?4:5;
+  if(t!==lastTitle){lastTitle=t;title.style.opacity=0;setTimeout(()=>{title.textContent=titles[t];title.style.opacity=1;},180);}
+  const on=p<.18?1:p<.28?2:p<.72?3:4;
+  stepsEl.forEach((s,i)=>s.classList.toggle('on',i<on));
+  cue.style.opacity=1-seg(p,.85,.95);
+}
+
+/* ---------- flow animation ---------- */
+const fBox=$('#flowBox'), fCan=$('#flowCanvas'), fctx=fCan.getContext('2d'), fDoc=$('#flowDoc'), fCore=$('#flowCore'), fAns=$('#flowAnswer'), fText=$('#flowText');
+const answerText='Yes. You can carry over up to 5 unused days. They must be used by 31 March, and your manager approves them in the HR portal.';
+let fVisible=false, fParts=[], fT0=0, fPhase=-1, fDpr=1;
+new IntersectionObserver(es=>{fVisible=es[0].isIntersecting; if(fVisible&&!fRun){fRun=true;fT0=performance.now();fPhase=-1;requestAnimationFrame(flowLoop);}},{threshold:.2}).observe(fBox);
+let fRun=false;
+function center(el){const b=fBox.getBoundingClientRect(), r=el.getBoundingClientRect();return {x:r.left-b.left+r.width/2,y:r.top-b.top+r.height/2};}
+function sizeFlow(){fDpr=Math.min(devicePixelRatio||1,2);const b=fBox.getBoundingClientRect();fCan.width=b.width*fDpr;fCan.height=b.height*fDpr;}
+sizeFlow();addEventListener('resize',sizeFlow);
+function flowLoop(now){
+  if(!fVisible){fRun=false;return;}
+  const t=((now-fT0)/1000)%10;
+  const A=center(fDoc),B=center(fCore),C=center(fAns);
+  // phase control
+  const phase=t<3.2?0:t<4.2?1:t<9?2:3;
+  if(phase!==fPhase){
+    fPhase=phase;
+    if(phase===0){fAns.classList.remove('show','cited');fText.textContent='';fCore.classList.remove('charged');}
+    if(phase===1){fCore.classList.add('charged');}
+    if(phase===2){fCore.classList.remove('charged');fAns.classList.add('show');}
+  }
+  if(phase===2){const n=Math.floor(clamp((t-4.6)/3.2,0,1)*answerText.length);fText.textContent=answerText.slice(0,n);if(t>7.9)fAns.classList.add('cited');}
+  // spawn particles
+  if(!reduce){
+    if(phase===0 && Math.random()<.55) fParts.push({from:A,to:B,t:0,sp:.008+Math.random()*.01,off:(Math.random()-.5)*120,r:1.5+Math.random()*2.5});
+    if(phase===2 && t<6 && Math.random()<.4) fParts.push({from:B,to:C,t:0,sp:.01+Math.random()*.01,off:(Math.random()-.5)*90,r:1.5+Math.random()*2});
+  }
+  fctx.setTransform(fDpr,0,0,fDpr,0,0);fctx.clearRect(0,0,fCan.width,fCan.height);
+  // guide curves
+  fctx.lineWidth=1;fctx.setLineDash([4,7]);fctx.strokeStyle='rgba(126,83,40,.25)';
+  [[A,B],[B,C]].forEach(([p,q])=>{fctx.beginPath();fctx.moveTo(p.x,p.y);const mx=(p.x+q.x)/2,my=(p.y+q.y)/2-40;fctx.quadraticCurveTo(mx,my,q.x,q.y);fctx.stroke();});
+  fctx.setLineDash([]);
+  fParts=fParts.filter(pt=>pt.t<1);
+  fParts.forEach(pt=>{
+    pt.t+=pt.sp;const u=pt.t, p=pt.from,q=pt.to;
+    const mx=(p.x+q.x)/2+(q.y-p.y?pt.off*.3:0), my=(p.y+q.y)/2-40+pt.off;
+    const x=(1-u)*(1-u)*p.x+2*(1-u)*u*mx+u*u*q.x, y=(1-u)*(1-u)*p.y+2*(1-u)*u*my+u*u*q.y;
+    const g=fctx.createRadialGradient(x,y,0,x,y,pt.r*4);
+    g.addColorStop(0,'rgba(255,236,200,1)');g.addColorStop(.35,'rgba(193,154,107,.9)');g.addColorStop(1,'rgba(193,154,107,0)');
+    fctx.fillStyle=g;fctx.beginPath();fctx.arc(x,y,pt.r*4,0,7);fctx.fill();
+  });
+  requestAnimationFrame(flowLoop);
+}
+
+/* ---------- launch ---------- */
+const stage=$('#stage'), chat=$('#chat');
+const QA=[
+  ['How many leave days can I carry over?','You can carry over up to 5 unused days into next year. They must be used by 31 March.','Leave-Policy-2026.docx · Section 4'],
+  ['What can I claim for a work trip?','Travel, a hotel up to the city rate and meals up to the daily allowance. Keep receipts and submit within 30 days.','Travel-Expenses-Policy.pdf · Page 2'],
+  ['Who approves my time off?','Your line manager approves leave in the HR portal. For more than 10 days in a row, HR also signs off.','Leave-Policy-2026.docx · Section 2']
+];
+let busy=false, timers=[];
+function later(fn,ms){timers.push(setTimeout(fn,ms));}
+function add(cls,html){const m=document.createElement('div');m.className='msg '+cls;m.innerHTML=html;chat.appendChild(m);chat.scrollTop=chat.scrollHeight;return m;}
+function ask(i){
+  if(busy) return; busy=true;
+  const [q,a,s]=QA[i];
+  add('u',q);
+  const ty=add('b','<span class="typing"><i></i><i></i><i></i></span>');
+  later(()=>{ty.innerHTML='';let k=0;const step=()=>{k+=2;ty.textContent=a.slice(0,k);chat.scrollTop=chat.scrollHeight;if(k<a.length)later(step,18);else{const sp=document.createElement('span');sp.className='src';sp.textContent=s;ty.appendChild(document.createElement('br'));ty.appendChild(sp);busy=false;chat.scrollTop=chat.scrollHeight;}};step();},900);
+}
+function launch(){
+  timers.forEach(clearTimeout);timers=[];busy=false;chat.innerHTML='';
+  stage.classList.remove('go','done');void stage.offsetWidth;
+  stage.classList.add('go');
+  if(holoPulse) holoPulse();
+  later(()=>{stage.classList.add('done');add('b','Hi, I\'m Policy Helper. Ask me about leave or travel. I answer from the HR Policies site and show my sources.');},reduce?0:1500);
+  later(()=>ask(0),reduce?200:2600);
+}
+$('#launchBtn').addEventListener('click',launch);
+$('#replayBtn').addEventListener('click',launch);
+$$('#starters button').forEach(b=>b.addEventListener('click',()=>ask(+b.dataset.q)));
+
+/* ---------- 3D hologram ---------- */
+let holoPulse=null;
+const holo=$('#holo');
+if(window.THREE){
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+  holo.appendChild(renderer.domElement);
+  const scene=new THREE.Scene(), cam=new THREE.PerspectiveCamera(45,1,.1,100);cam.position.set(0,0,6.2);
+  const root=new THREE.Group(), spin=new THREE.Group();root.add(spin);scene.add(root);
+
+  // soft dot sprite
+  const sc=document.createElement('canvas');sc.width=sc.height=64;const sx=sc.getContext('2d');
+  const sg=sx.createRadialGradient(32,32,0,32,32,32);sg.addColorStop(0,'rgba(255,255,255,1)');sg.addColorStop(.4,'rgba(255,255,255,.8)');sg.addColorStop(1,'rgba(255,255,255,0)');
+  sx.fillStyle=sg;sx.fillRect(0,0,64,64);const sprite=new THREE.CanvasTexture(sc);
+
+  const N=1500, pos=new Float32Array(N*3), col=new Float32Array(N*3);
+  const T=[new Float32Array(N*3),new Float32Array(N*3)]; // sphere, neural (orbit computed live)
+  const orbit=[]; const palette=[new THREE.Color('#7E5328'),new THREE.Color('#A47E57'),new THREE.Color('#C19A6B'),new THREE.Color('#5E3B1A')];
+  const golden=Math.PI*(3-Math.sqrt(5));
+  const centers=[];for(let c=0;c<9;c++){const v=new THREE.Vector3().randomDirection?new THREE.Vector3().randomDirection():new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize();centers.push(v.multiplyScalar(c===0?0:1.15));}
+  const gauss=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
+  for(let i=0;i<N;i++){
+    const y=1-(i/(N-1))*2, rr=Math.sqrt(1-y*y), th=golden*i, R=1.55;
+    T[0].set([Math.cos(th)*rr*R,y*R,Math.sin(th)*rr*R],i*3);
+    const c=centers[i%centers.length], spread=i%centers.length===0?.28:.2;
+    T[1].set([c.x+gauss()*spread,c.y+gauss()*spread,c.z+gauss()*spread],i*3);
+    const ring=i<N*.25?-1:(i%3); const radius=ring<0?.45:[1.05,1.5,1.95][ring];
+    orbit.push({ring,radius,a:Math.random()*Math.PI*2,sp:ring<0?0:[.55,.35,.22][ring]*(ring===1?-1:1),y:(Math.random()-.5)*(ring<0?0:.06),u:Math.random()*Math.PI*2,v:Math.acos(2*Math.random()-1)});
+    pos.set(T[0].subarray(i*3,i*3+3),i*3);
+    const k=palette[(Math.random()*palette.length)|0];col.set([k.r,k.g,k.b],i*3);
+  }
+  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(pos,3));geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const pts=new THREE.Points(geo,new THREE.PointsMaterial({size:.07,map:sprite,vertexColors:true,transparent:true,depthWrite:false,opacity:.95}));
+  spin.add(pts);
+
+  // neural links
+  const LK=[];for(let i=0;i<360&&LK.length<700;i++)for(let j=i+1;j<360;j++){const dx=T[1][i*3]-T[1][j*3],dy=T[1][i*3+1]-T[1][j*3+1],dz=T[1][i*3+2]-T[1][j*3+2];if(dx*dx+dy*dy+dz*dz<.16){LK.push(i,j);if(LK.length>=1400)break;}}
+  // links between cluster centers (via representatives)
+  for(let c=1;c<9;c++){LK.push(0,c);LK.push(c,(c%8)+1);}
+  const lpos=new Float32Array(LK.length*3);const lgeo=new THREE.BufferGeometry();lgeo.setAttribute('position',new THREE.BufferAttribute(lpos,3));
+  const lmat=new THREE.LineBasicMaterial({color:0x8a5a2b,transparent:true,opacity:0});const links=new THREE.LineSegments(lgeo,lmat);spin.add(links);
+
+  // sphere wire
+  const wire=new THREE.Mesh(new THREE.IcosahedronGeometry(1.62,2),new THREE.MeshBasicMaterial({color:0xa47e57,wireframe:true,transparent:true,opacity:.25}));spin.add(wire);
+  // orbit rings
+  const ringGroup=new THREE.Group();const tilts=[[.35,0,.1],[-.5,0,.4],[.15,0,-.6]];const ringMats=[];
+  [1.05,1.5,1.95].forEach((r,i)=>{const g=new THREE.BufferGeometry().setFromPoints(new THREE.Path().absarc(0,0,r,0,Math.PI*2).getSpacedPoints(160).map(p=>new THREE.Vector3(p.x,0,p.y)));const m=new THREE.LineBasicMaterial({color:0x7e5328,transparent:true,opacity:0});ringMats.push(m);const l=new THREE.Line(g,m);l.rotation.set(...tilts[i]);ringGroup.add(l);});
+  spin.add(ringGroup);
+  // core glow
+  const coreMat=new THREE.SpriteMaterial({map:sprite,color:0xc19a6b,transparent:true,opacity:.0,depthWrite:false});const coreSpr=new THREE.Sprite(coreMat);coreSpr.scale.set(1.6,1.6,1);spin.add(coreSpr);
+
+  // pulses
+  const pulses=[];const ringGeo=new THREE.RingGeometry(.96,1,96);
+  holoPulse=function(){
+    const m=new THREE.Mesh(ringGeo,new THREE.MeshBasicMaterial({color:0x7e5328,transparent:true,opacity:.9,side:THREE.DoubleSide,depthWrite:false}));
+    scene.add(m);pulses.push({t0:performance.now(),mesh:m});
+  };
+  renderer.domElement.addEventListener('click',()=>{holoPulse();});
+
+  let mode=0;const w=[1,0,0];
+  $$('.holo-ui [data-mode]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();mode=+b.dataset.mode;$$('.holo-ui [data-mode]').forEach(x=>x.setAttribute('aria-pressed',x===b));holoPulse();}));
+
+  let mx=0,my=0;
+  addEventListener('pointermove',e=>{const r=holo.getBoundingClientRect();mx=clamp((e.clientX-(r.left+r.width/2))/(r.width),-1.2,1.2);my=clamp((e.clientY-(r.top+r.height/2))/(r.height),-1.2,1.2);},{passive:true});
+
+  function resize(){const r=holo.getBoundingClientRect();renderer.setSize(r.width,r.height,false);cam.aspect=r.width/r.height||1;cam.updateProjectionMatrix();}
+  resize();addEventListener('resize',resize);
+  let visible=true;new IntersectionObserver(es=>{visible=es[0].isIntersecting;},{threshold:0}).observe(holo);
+
+  const tmp=new THREE.Vector3(), eul=tilts.map(t=>new THREE.Euler(...t));
+  function frame(now){
+    requestAnimationFrame(frame);
+    if(!visible) return;
+    const t=now/1000;
+    for(let k=0;k<3;k++) w[k]=lerp(w[k],k===mode?1:0,.05);
+    // pulse wave
+    const active=pulses.map(p=>({p,age:(now-p.t0)/1000}));
+    for(let i=0;i<N;i++){
+      const o=orbit[i];let ox,oy,oz;
+      if(o.ring<0){const r=o.radius*(1+.08*Math.sin(t*2+i));ox=r*Math.sin(o.v)*Math.cos(o.u+t*.3);oy=r*Math.cos(o.v);oz=r*Math.sin(o.v)*Math.sin(o.u+t*.3);}
+      else{const a=o.a+t*o.sp;tmp.set(Math.cos(a)*o.radius,o.y,Math.sin(a)*o.radius).applyEuler(eul[o.ring]);ox=tmp.x;oy=tmp.y;oz=tmp.z;}
+      const j=i*3;
+      let tx=T[0][j]*w[0]+T[1][j]*w[1]+ox*w[2], ty=T[0][j+1]*w[0]+T[1][j+1]*w[1]+oy*w[2], tz=T[0][j+2]*w[0]+T[1][j+2]*w[1]+oz*w[2];
+      // shimmer
+      const sh=1+.025*Math.sin(t*3+i*.37);tx*=sh;ty*=sh;tz*=sh;
+      // pulse displacement
+      if(active.length){const d=Math.hypot(tx,ty,tz)||1;let push=0;active.forEach(({age})=>{const wf=age*3.2;push+=Math.exp(-Math.pow(d-wf,2)*7)*.45*Math.max(0,1-age/1.4);});tx+=tx/d*push;ty+=ty/d*push;tz+=tz/d*push;}
+      pos[j]+= (tx-pos[j])*.08; pos[j+1]+=(ty-pos[j+1])*.08; pos[j+2]+=(tz-pos[j+2])*.08;
+    }
+    geo.attributes.position.needsUpdate=true;
+    for(let k=0;k<LK.length;k++){const s=LK[k]*3;lpos[k*3]=pos[s];lpos[k*3+1]=pos[s+1];lpos[k*3+2]=pos[s+2];}
+    lgeo.attributes.position.needsUpdate=true;
+    lmat.opacity=.35*w[1];wire.material.opacity=.22*w[0];ringMats.forEach(m=>m.opacity=.45*w[2]);
+    coreMat.opacity=.55*w[1]+.7*w[2]+.15*w[0];coreSpr.scale.setScalar(1.3+.15*Math.sin(t*2)+w[2]*.4);
+    pts.material.size=.07+.012*Math.sin(t*1.5);
+    // pulses
+    for(let k=pulses.length-1;k>=0;k--){const p=pulses[k],age=(now-p.t0)/1000;p.mesh.scale.setScalar(.3+age*3.2);p.mesh.material.opacity=Math.max(0,.9*(1-age/1.3));p.mesh.quaternion.copy(cam.quaternion);if(age>1.3){scene.remove(p.mesh);p.mesh.material.dispose();pulses.splice(k,1);}}
+    // mouse follow
+    if(!reduce){spin.rotation.y+=.0025;wire.rotation.x+=.001;}
+    root.rotation.y=lerp(root.rotation.y,mx*.9,.06);root.rotation.x=lerp(root.rotation.x,my*.6,.06);
+    root.position.x=lerp(root.position.x,mx*.25,.05);root.position.y=lerp(root.position.y,-my*.18+Math.sin(t)*.06,.05);
+    renderer.render(scene,cam);
+  }
+  requestAnimationFrame(frame);
+} else {
+  holo.querySelector('.holo-hint').textContent='3D view unavailable';
+}
+
+onScroll();
+})();
+</script>
