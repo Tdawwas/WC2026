@@ -111,6 +111,27 @@ main{overflow-x:clip}
 .pop:hover::before{opacity:1}
 .pop>*{position:relative}
 
+/* brief player */
+.player{position:relative;border-radius:24px;overflow:hidden;background:var(--beige-2);border:1px solid var(--line);box-shadow:0 40px 80px -30px rgba(126,83,40,.45)}
+.player canvas{display:block;width:100%;aspect-ratio:16/9;max-width:100%}
+.player:fullscreen{border-radius:0;display:grid;align-content:center;background:var(--beige)}
+.player:fullscreen canvas{max-height:calc(100vh - 110px);width:auto;margin:0 auto}
+.p-play{position:absolute;left:50%;top:calc((100% - 63px) * .4167);transform:translate(-50%,-50%);width:92px;height:92px;border-radius:50%;border:0;background:radial-gradient(circle at 35% 30%,#E7C08C,var(--brown) 50%,var(--bronze));box-shadow:0 0 0 12px rgba(193,154,107,.25),0 18px 40px rgba(126,83,40,.45);display:grid;place-items:center;transition:transform .3s,opacity .3s}
+.p-play:hover{transform:translate(-50%,-50%) scale(1.08)}
+.p-play svg{width:34px;height:34px;fill:var(--paper);margin-left:5px}
+.player.playing .p-play{opacity:0;pointer-events:none;transform:translate(-50%,-50%) scale(.6)}
+.p-cap{position:absolute;left:50%;bottom:74px;transform:translateX(-50%);width:min(86%,760px);text-align:center;font-size:clamp(.8rem,1.6vw,1rem);background:rgba(54,38,26,.82);color:var(--paper);padding:8px 14px;border-radius:10px;transition:opacity .3s}
+.p-cap:empty{opacity:0}
+.p-bar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--paper);border-top:1px solid var(--line)}
+.p-btn{border:0;background:var(--bronze);color:var(--paper);width:38px;height:38px;border-radius:50%;display:grid;place-items:center;flex:none}
+.p-btn.ghost{background:var(--beige);color:var(--bronze);border:1px solid var(--line)}
+.p-btn svg{width:16px;height:16px;fill:currentColor}
+.p-time{font-family:var(--f-mono);font-size:.78rem;color:var(--ink-soft);font-variant-numeric:tabular-nums;flex:none}
+.p-seek{flex:1;min-width:0;accent-color:var(--bronze);height:4px}
+.chapters{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.chapters button.on{background:var(--bronze);color:var(--paper);border-color:var(--bronze)}
+@media (max-width:600px){.p-cap{bottom:64px;font-size:.72rem;padding:5px 9px}.p-play{width:64px;height:64px}.p-play svg{width:24px;height:24px}}
+
 /* pillars */
 .pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;perspective:1200px}
 .pillar{padding:30px 26px 28px;display:grid;gap:12px;align-content:start}
@@ -298,7 +319,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   <div class="wrap">
     <a class="brand" href="#top"><i></i>Agent Studio Session</a>
     <nav class="nav-links" aria-label="Sections">
-      <a href="#parts">Parts</a><a href="#flow">How it works</a><a href="#build">Build it</a><a href="#studio">Copilot Studio</a><a href="#launch">Launch</a><a href="#kit">Presenter kit</a>
+      <a href="#brief">Brief</a><a href="#parts">Parts</a><a href="#flow">How it works</a><a href="#build">Build it</a><a href="#studio">Copilot Studio</a><a href="#launch">Launch</a><a href="#kit">Presenter kit</a>
       <button class="chip-btn" id="notesBtn" aria-pressed="false" title="Show presenter notes (N)">Notes</button>
     </nav>
   </div>
@@ -333,6 +354,32 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
           <button class="chip-btn" data-mode="2" aria-pressed="false">Orbit</button>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- BRIEF -->
+  <section class="sec" id="brief" style="padding-block-start:clamp(30px,5vw,60px)">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow reveal">The brief · 40 seconds</span>
+        <h2 class="title-split reveal">The whole idea in one short film</h2>
+        <p class="lede reveal" style="--d:.1s">Play this first. It shows the four moves of building an agent before we go through each one.</p>
+      </div>
+      <div class="player reveal" id="player">
+        <canvas id="briefCanvas" role="img" aria-label="Animated brief: an agent is given one job, knowledge and rules, then tested and shared"></canvas>
+        <button class="p-play" id="pPlay" aria-label="Play the brief"><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg></button>
+        <div class="p-cap" id="pCap"></div>
+        <div class="p-bar">
+          <button class="p-btn" id="pToggle" aria-label="Play"><svg viewBox="0 0 24 24" id="pIcon"><path d="M6 4l14 8-14 8z"/></svg></button>
+          <span class="p-time" id="pTime">0:00 / 0:40</span>
+          <input class="p-seek" id="pSeek" type="range" min="0" max="40" step="0.05" value="0" aria-label="Seek">
+          <button class="p-btn ghost" id="pFull" aria-label="Full screen"><svg viewBox="0 0 24 24"><path d="M3 3h7v2H5v5H3zm11 0h7v7h-2V5h-5zM3 14h2v5h5v2H3zm16 0h2v7h-7v-2h5z"/></svg></button>
+        </div>
+      </div>
+      <div class="chapters" id="chapters" aria-label="Chapters">
+        <button class="chip-btn" data-t="0">Intro</button><button class="chip-btn" data-t="6">1 · Purpose</button><button class="chip-btn" data-t="12">2 · Knowledge</button><button class="chip-btn" data-t="18">3 · Instructions</button><button class="chip-btn" data-t="24">4 · Test</button><button class="chip-btn" data-t="31">5 · Share</button>
+      </div>
+      <p class="note">Press play and stay quiet for the 40 seconds. Let the film do the intro, then say: "Let's take those parts one at a time."</p>
     </div>
   </section>
 
@@ -942,6 +989,122 @@ if(window.THREE){
 } else {
   holo.querySelector('.holo-hint').textContent='3D view unavailable';
 }
+
+/* ---------- animated brief ---------- */
+(function brief(){
+  const cv=$('#briefCanvas'), cx=cv.getContext('2d'), player=$('#player'), W=1280,H=720,D=40;
+  const C={bg1:'#F4ECDF',bg2:'#E6D7C0',paper:'#FBF6EE',camel:'#C19A6B',brown:'#A47E57',bronze:'#7E5328',ink:'#36261A',soft:'#6E5A47',glow:'#F5D7A6',code:'#3A2A1D',codeTxt:'#F3E6D2'};
+  const FD='"Bricolage Grotesque","Avenir Next","Segoe UI",sans-serif', FB='"Figtree","Segoe UI",sans-serif', FM='"JetBrains Mono",Consolas,monospace';
+  const CAPS=[[0,6,'In about ten minutes, with no code, you can build an assistant that knows your work.'],[6,12,'Start with one clear job for one group of people.'],[12,18,'Point it at the files it should read, like a SharePoint site.'],[18,24,'Write its rules in plain sentences, like briefing a new colleague.'],[24,31,'Test it. Every answer shows the document it came from.'],[31,36,'Select Create, then share it with your team.'],[36,40,'Microsoft 365 Copilot app, then Agents, then Create agent.']];
+  let t=3.4, playing=false, last=0, dpr=1;
+  const P=[...Array(150)].map((_,i)=>({x:Math.random()*W,y:Math.random()*H,a:Math.random()*6.28,r:30+Math.random()*60,s:1+Math.random()*2.5,c:i%3}));
+  const dust=[...Array(40)].map(()=>({x:Math.random()*W,y:Math.random()*H,v:.2+Math.random()*.6,r:1+Math.random()*2}));
+  const sz=()=>{dpr=Math.min(devicePixelRatio||1,2);const w=cv.clientWidth||W;cv.width=w*dpr;cv.height=w*9/16*dpr;draw();};
+  const win=(a,b,f=.5)=>seg(t,a,a+f)*(1-seg(t,b-f,b));
+  function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath();}
+  function txt(s,x,y,size,font,color,align='left',weight=''){cx.font=`${weight} ${size}px ${font}`;cx.fillStyle=color;cx.textAlign=align;cx.textBaseline='alphabetic';cx.fillText(s,x,y);}
+  const KEYS=[[0,640,300,70],[6,640,300,70],[7,370,360,82],[24,370,360,82],[25,640,140,40],[31,640,140,40],[32,640,330,62],[36,640,330,62],[37,640,260,74],[40,640,260,74]];
+  function orb(){for(let i=0;i<KEYS.length-1;i++){const a=KEYS[i],b=KEYS[i+1];if(t<=b[0]){const u=ease(seg(t,a[0],b[0]));return{x:lerp(a[1],b[1],u),y:lerp(a[2],b[2],u),r:lerp(a[3],b[3],u)};}}const k=KEYS[KEYS.length-1];return{x:k[1],y:k[2],r:k[3]};}
+  function drawOrb(o,alpha,boost){
+    if(alpha<=0) return; cx.save();cx.globalAlpha=alpha;
+    const g=cx.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r*3.2);g.addColorStop(0,'rgba(245,215,166,'+(.75+boost*.25)+')');g.addColorStop(1,'rgba(245,215,166,0)');cx.fillStyle=g;cx.beginPath();cx.arc(o.x,o.y,o.r*3.2,0,7);cx.fill();
+    // pulse rings every 2s
+    const ph=(t%2)/2;cx.strokeStyle='rgba(126,83,40,'+(.5*(1-ph))+')';cx.lineWidth=2;cx.beginPath();cx.arc(o.x,o.y,o.r*(1.1+ph*1.9),0,7);cx.stroke();
+    cx.setLineDash([6,9]);cx.lineDashOffset=-t*30;cx.strokeStyle='rgba(126,83,40,.55)';cx.lineWidth=1.5;cx.beginPath();cx.arc(o.x,o.y,o.r*1.5,0,7);cx.stroke();cx.setLineDash([]);
+    cx.strokeStyle='rgba(193,154,107,.8)';cx.lineWidth=2;cx.beginPath();cx.arc(o.x,o.y,o.r*1.25,t*1.5,t*1.5+2.2);cx.stroke();cx.beginPath();cx.arc(o.x,o.y,o.r*1.25,t*1.5+3.14,t*1.5+5.3);cx.stroke();
+    const s=o.r*(1+.04*Math.sin(t*3)+boost*.15);
+    const og=cx.createRadialGradient(o.x-s*.35,o.y-s*.4,s*.05,o.x,o.y,s);og.addColorStop(0,'#FFF1D8');og.addColorStop(.4,C.camel);og.addColorStop(.85,C.bronze);og.addColorStop(1,'#5A3818');
+    cx.fillStyle=og;cx.beginPath();cx.arc(o.x,o.y,s,0,7);cx.fill();
+    cx.restore();
+  }
+  function label(n,x,y,a,align='left'){cx.globalAlpha=a;txt(n,x,y,15,FM,C.bronze,align,'600');}
+  function draw(){
+    cx.setTransform(1,0,0,1,0,0);const k=cv.width/W;cx.setTransform(k,0,0,k,0,0);
+    const bg=cx.createLinearGradient(0,0,W,H);bg.addColorStop(0,C.bg1);bg.addColorStop(1,C.bg2);cx.fillStyle=bg;cx.fillRect(0,0,W,H);
+    cx.fillStyle='rgba(126,83,40,.07)';for(let x=20;x<W;x+=32)for(let y=20;y<H;y+=32){cx.fillRect(x,y,2,2);}
+    dust.forEach(d=>{const y=((d.y-t*d.v*20)%H+H)%H;cx.fillStyle='rgba(193,154,107,.45)';cx.beginPath();cx.arc(d.x+Math.sin(t+d.y)*10,y,d.r,0,7);cx.fill();});
+    // slow camera drift (time as the 4th dimension)
+    cx.save();const z=1+.025*Math.sin(t*.25);cx.translate(W/2,H/2);cx.scale(z,z);cx.rotate(.006*Math.sin(t*.2));cx.translate(-W/2,-H/2);
+    const o=orb();let boost=0;
+    // S0 particles converge
+    if(t<3.2){const u=ease(seg(t,0,2.4));P.forEach(p=>{const tx=o.x+Math.cos(p.a+t)*p.r*(1-u)*.2,ty=o.y+Math.sin(p.a+t)*p.r*(1-u)*.2;const x=lerp(p.x,tx,u),y=lerp(p.y,ty,u);cx.globalAlpha=1-seg(t,2.2,3.1);cx.fillStyle=[C.bronze,C.camel,C.brown][p.c];cx.beginPath();cx.arc(x,y,p.s,0,7);cx.fill();});cx.globalAlpha=1;}
+    if(t>2.2&&t<3.2) boost=Math.sin(seg(t,2.2,3.2)*Math.PI);
+    // S1 purpose target rings
+    const a1=win(6.3,12);
+    if(a1>0){for(let i=0;i<3;i++){const ph=((t*.6+i/3)%1);cx.globalAlpha=a1*(1-ph)*.7;cx.strokeStyle=C.camel;cx.lineWidth=2;cx.beginPath();cx.arc(o.x,o.y,o.r*(1.6+ph*1.6),0,7);cx.stroke();}
+      const dx=(1-ease(seg(t,6.3,7.4)))*70;label('1 · PURPOSE',640+dx,250,a1);cx.globalAlpha=a1;txt('Pick one job',640+dx,318,60,FD,C.ink,'left','800');txt('One clear task for one group of people.',640+dx,366,26,FB,C.soft);
+      const ca=seg(t,7.6,8.3);cx.globalAlpha=a1*ca;cx.font='500 22px '+FB;const cw=cx.measureText('“Answer leave and travel questions”').width+44;rr(640+dx,400+(1-ca)*16,cw,52,26);cx.fillStyle=C.paper;cx.fill();cx.strokeStyle=C.camel;cx.lineWidth=1.5;cx.stroke();txt('“Answer leave and travel questions”',662+dx,433+(1-ca)*16,22,FB,C.bronze,'left','500');cx.globalAlpha=1;}
+    // S2 knowledge docs fly in
+    const a2=win(12.3,18);
+    if(a2>0){const dx=(1-ease(seg(t,12.3,13.3)))*70;label('2 · KNOWLEDGE',640+dx,170,a2);cx.globalAlpha=a2;txt('Give it knowledge',640+dx,236,60,FD,C.ink,'left','800');txt('SharePoint sites, folders and files it can read.',640+dx,282,26,FB,C.soft);
+      const names=['Leave-Policy.docx','Travel-Expenses.pdf','HR-FAQ.docx'];
+      for(let i=0;i<3;i++){const sx=720+i*170,sy=360+(i%2)*40+Math.sin(t*2+i)*6, f0=14+i*.9, u=ease(seg(t,f0,f0+1.2));
+        if(u>=1){continue;}
+        // trail
+        for(let k2=1;k2<10;k2++){const uu=Math.max(0,u-k2*.03);if(uu<=0)break;const tx=lerp(sx+60,o.x,uu),ty=lerp(sy+75,o.y,uu)-Math.sin(uu*Math.PI)*90;cx.globalAlpha=a2*(1-k2/10)*(u>0?1:0);cx.fillStyle=C.camel;cx.beginPath();cx.arc(tx,ty,5-k2*.4,0,7);cx.fill();}
+        const x=lerp(sx+60,o.x,u),y=lerp(sy+75,o.y,u)-Math.sin(u*Math.PI)*90,sc=1-u*.85;
+        cx.save();cx.globalAlpha=a2*(1-seg(u,.85,1));cx.translate(x,y);cx.rotate((i-1)*.08+u*1.5);cx.scale(sc,sc);
+        rr(-60,-75,120,150,12);cx.fillStyle=C.paper;cx.shadowColor='rgba(126,83,40,.3)';cx.shadowBlur=24;cx.shadowOffsetY=10;cx.fill();cx.shadowColor='transparent';cx.strokeStyle='rgba(126,83,40,.25)';cx.lineWidth=1;cx.stroke();
+        for(let l=0;l<5;l++){rr(-42,-30+l*16,[76,60,70,50,64][l],7,3);cx.fillStyle=l===1||l===2?C.camel:C.bg2;cx.fill();}
+        txt(names[i],0,-46,11,FM,C.bronze,'center');cx.restore();
+        if(u>.9) boost=Math.max(boost,seg(u,.9,1));}
+      cx.globalAlpha=1;}
+    // S3 instructions panel
+    const a3=win(18.3,24);
+    if(a3>0){const dx=(1-ease(seg(t,18.3,19.3)))*70;label('3 · INSTRUCTIONS',640+dx,170,a3);cx.globalAlpha=a3;txt('Write the rules',640+dx,236,60,FD,C.ink,'left','800');
+      rr(640+dx,272,560,232,18);cx.fillStyle=C.code;cx.fill();
+      const lines=['Keep answers under 80 words.','Always name the policy you used.','If you are not sure, refer to HR.'];let cy=330,done=true;
+      lines.forEach((ln,i)=>{const st=19.4+i*1.4,n=Math.floor(clamp((t-st)*28,0,ln.length));if(n<ln.length)done=false;txt('›',672+dx,cy,22,FM,C.camel);txt(ln.slice(0,n),700+dx,cy,22,FM,C.codeTxt);
+        if(n>0&&n<ln.length&&Math.floor(t*4)%2===0){cx.font='22px '+FM;const w=cx.measureText(ln.slice(0,n)).width;cx.fillStyle=C.camel;cx.fillRect(704+dx+w,cy-20,11,24);}cy+=56;});
+      // lines feeding orb
+      if(t>19.4){cx.setLineDash([5,8]);cx.lineDashOffset=t*40;cx.strokeStyle='rgba(193,154,107,'+.7*a3+')';cx.lineWidth=2;cx.beginPath();cx.moveTo(640+dx,388);cx.quadraticCurveTo(540,300,o.x+o.r*1.2,o.y);cx.stroke();cx.setLineDash([]);}
+      cx.globalAlpha=1;}
+    // S4 chat test
+    const a4=win(24.6,31);
+    if(a4>0){label('4 · TEST IT',640,236,a4,'center');
+      const ua=seg(t,25.3,25.8);cx.globalAlpha=a4*ua;rr(560,262+(1-ua)*20,400,58,20);cx.fillStyle=C.bronze;cx.fill();txt('Can I carry over unused leave?',940,299+(1-ua)*20,22,FB,C.paper,'right','500');
+      const ba=seg(t,26.2,26.7);if(ba>0){cx.globalAlpha=a4*ba;rr(320,344,560,t<27.4?58:140,20);cx.fillStyle=C.paper;cx.fill();cx.strokeStyle='rgba(126,83,40,.2)';cx.lineWidth=1;cx.stroke();
+        if(t<27.4){for(let d=0;d<3;d++){cx.fillStyle=C.brown;cx.beginPath();cx.arc(352+d*18,373-Math.max(0,Math.sin(t*9-d))*5,5,0,7);cx.fill();}}
+        else{const a='Yes. You can carry over up to 5 days,',b='used by 31 March.';const n=Math.floor((t-27.4)*34);txt(a.slice(0,n),346,386,22,FB,C.ink);if(n>a.length)txt(b.slice(0,n-a.length),346,418,22,FB,C.ink);
+          const sa=seg(t,29,29.5);cx.globalAlpha=a4*sa;rr(346,436,330,34,17);cx.fillStyle=C.bg1;cx.fill();cx.strokeStyle=C.camel;cx.stroke();txt('Leave-Policy-2026.docx · Section 4',362,459,14,FM,C.bronze);}}
+      cx.globalAlpha=1;}
+    // S5 share
+    const a5=win(31.4,36.2);
+    if(a5>0){const ra=seg(t,32,33.2);cx.globalAlpha=a5*(1-ra);cx.strokeStyle=C.camel;cx.lineWidth=3;cx.beginPath();cx.arc(o.x,o.y,o.r+ra*300,0,7);cx.stroke();
+      for(let i=0;i<6;i++){const ang=-Math.PI/2+i*Math.PI/3,st=32.3+i*.25,u=ease(seg(t,st,st+.5));const ax=o.x+Math.cos(ang)*200,ay=o.y+Math.sin(ang)*150;
+        cx.globalAlpha=a5*u;cx.strokeStyle='rgba(126,83,40,.35)';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(o.x,o.y);cx.lineTo(lerp(o.x,ax,u),lerp(o.y,ay,u));cx.stroke();
+        const r=26*u;const g=cx.createRadialGradient(ax-8,ay-8,2,ax,ay,r||1);g.addColorStop(0,'#FFF1D8');g.addColorStop(1,[C.camel,C.brown,C.bronze][i%3]);cx.fillStyle=g;cx.beginPath();cx.arc(ax,ay,r,0,7);cx.fill();
+        cx.fillStyle=C.paper;cx.beginPath();cx.arc(ax,ay-6*u,8*u,0,7);cx.fill();cx.beginPath();cx.arc(ax,ay+14*u,13*u,Math.PI,0);cx.fill();}
+      cx.globalAlpha=a5;txt('Create. Share. Done.',640,600,48,FD,C.ink,'center','800');label('5 · SHARE',640,540,a5,'center');cx.globalAlpha=1;}
+    // S6 end card
+    const a6=seg(t,36.6,37.4);
+    if(a6>0){cx.globalAlpha=a6;txt('Ready in about 10 minutes',640,440+(1-a6)*20,60,FD,C.ink,'center','800');txt('Copilot app  →  Agents  →  Create agent',640,494,22,FM,C.bronze,'center');
+      ['No code','Your files','Your rules'].forEach((c,i)=>{cx.font='500 18px '+FB;const w=cx.measureText(c).width+36,x=640+(i-1)*170-w/2,ca=seg(t,37.6+i*.25,38+i*.25);cx.globalAlpha=a6*ca;rr(x,528,w,40,20);cx.fillStyle=C.paper;cx.fill();cx.strokeStyle='rgba(126,83,40,.25)';cx.stroke();txt(c,x+18,554,18,FB,C.ink,'left','500');});cx.globalAlpha=1;}
+    // title (S0)
+    const a0=win(1.8,6.2);
+    if(a0>0){const u=ease(seg(t,1.8,2.9));cx.globalAlpha=a0*u;txt('Build your own AI agent',640,470+(1-u)*30,64,FD,C.ink,'center','800');const u2=ease(seg(t,2.6,3.5));cx.globalAlpha=a0*u2;txt('in the Microsoft 365 Copilot app',640,516+(1-u2)*20,26,FB,C.soft,'center');label('THE 40-SECOND BRIEF',640,560,a0*u2,'center');cx.globalAlpha=1;}
+    drawOrb(o,t<6?seg(t,1.6,2.6):1,boost);
+    cx.restore();
+    // ui
+    const cap=CAPS.find(c=>t>=c[0]&&t<c[1]);pCap.textContent=playing&&cap?cap[2]:'';
+    const m=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');pTime.textContent=m(t)+' / '+m(D);pSeek.value=t;
+    chapBtns.forEach((b,i)=>{const s0=+b.dataset.t,s1=chapBtns[i+1]?+chapBtns[i+1].dataset.t:D;b.classList.toggle('on',t>=s0&&t<s1);});
+  }
+  const pCap=$('#pCap'),pTime=$('#pTime'),pSeek=$('#pSeek'),pIcon=$('#pIcon'),chapBtns=$$('#chapters button');
+  const PLAY='<path d="M6 4l14 8-14 8z"/>',PAUSE='<path d="M6 4h4v16H6zm8 0h4v16h-4z"/>';
+  function loop(now){if(!playing)return;const dt=Math.min((now-last)/1000,.1);last=now;t+=dt;if(t>=D){t=D;setPlay(false);}draw();if(playing)requestAnimationFrame(loop);}
+  function setPlay(on){if(on&&t>=D)t=0;playing=on;player.classList.toggle('playing',on);pIcon.innerHTML=on?PAUSE:PLAY;$('#pToggle').setAttribute('aria-label',on?'Pause':'Play');if(on){last=performance.now();requestAnimationFrame(loop);}draw();}
+  $('#pPlay').addEventListener('click',()=>{t=0;setPlay(true);});
+  $('#pToggle').addEventListener('click',()=>{if(!playing&&t===3.4)t=0;setPlay(!playing);});
+  pSeek.addEventListener('input',()=>{t=+pSeek.value;player.classList.add('playing');draw();});
+  chapBtns.forEach(b=>b.addEventListener('click',()=>{t=+b.dataset.t;setPlay(true);}));
+  $('#pFull').addEventListener('click',()=>{if(document.fullscreenElement)document.exitFullscreen?.();else player.requestFullscreen?.().catch(()=>toast('Full screen is not available here'));});
+  document.addEventListener('fullscreenchange',()=>setTimeout(sz,50));
+  cv.addEventListener('click',()=>setPlay(!playing));
+  new IntersectionObserver(es=>{if(!es[0].isIntersecting&&playing)setPlay(false);},{threshold:0}).observe(player);
+  addEventListener('resize',sz);sz();
+  document.fonts?.ready.then(sz);
+})();
 
 onScroll();
 })();
