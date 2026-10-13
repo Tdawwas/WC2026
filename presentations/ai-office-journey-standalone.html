@@ -49,7 +49,7 @@ p{margin:0}
 .scale-wrap{position:absolute;inset:0;transform-origin:50% 50%;transform-style:preserve-3d}
 
 /* arrive animation */
-.arrive{opacity:0;translate:0 30px;transition:opacity .8s var(--ease),translate .9s var(--ease);transition-delay:calc(var(--i,0)*.12s + .9s)}
+.arrive{opacity:0;translate:0 30px;transition:opacity .8s var(--ease),translate .9s var(--ease);transition-delay:calc(var(--i,0)*.12s + 1.7s)}
 .station.active .arrive{opacity:1;translate:0 0}
 
 /* shared card */
@@ -84,6 +84,50 @@ p{margin:0}
 #s1 .tag{position:absolute;font-family:var(--f-mono);font-size:.7rem;letter-spacing:.1em;color:var(--bronze);background:rgba(251,246,238,.8);border:1px solid var(--line);padding:5px 10px;border-radius:8px;animation:float 6s ease-in-out infinite}
 @keyframes float{50%{transform:translateY(-10px) translateZ(var(--z,0px))}}
 #s1 .tag.a{left:200px;top:250px;--z:120px}#s1 .tag.b{right:190px;top:300px;--z:160px;animation-delay:-2s}#s1 .tag.c{left:300px;top:470px;--z:60px;animation-delay:-4s}
+
+/* ---------- Station P: three parts, one assistant ---------- */
+#sp .parts{position:absolute;inset:0;transform-style:preserve-3d}
+.part{position:absolute;width:250px;padding:20px 22px;display:grid;gap:8px;transform-style:preserve-3d;transition:transform 1.4s var(--ease),opacity .9s var(--ease),translate .9s var(--ease);cursor:default}
+.part .glyph{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(140deg,var(--glow),var(--camel));box-shadow:inset 0 0 0 1px rgba(255,255,255,.5),0 10px 22px -8px rgba(126,83,40,.6)}
+.part .glyph svg{width:24px;height:24px;stroke:var(--bronze);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.part h3{font-size:1.25rem;font-weight:700}
+.part p{font-size:.88rem;color:var(--ink-soft);line-height:1.4}
+.part .ex{font-family:var(--f-mono);font-size:.72rem;color:var(--bronze);background:var(--beige);border-radius:9px;padding:8px 10px;line-height:1.45}
+.part.p1{left:90px;top:215px;transform:translateZ(60px) rotateY(14deg)}
+.part.p2{left:425px;top:235px;transform:translateZ(140px)}
+.part.p3{right:90px;top:215px;transform:translateZ(60px) rotateY(-14deg)}
+.part:hover{transform:translateZ(190px) scale(1.04)!important}
+#sp .beams{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .4s}
+#sp .beams line{stroke:var(--camel);stroke-width:2;stroke-dasharray:6 9;animation:dash 1s linear infinite}
+#sp .result{position:absolute;left:50%;top:50%;width:230px;height:230px;margin:-115px 0 0 -115px;transform:translateZ(120px) scale(0);opacity:0;transition:transform 1.2s .9s var(--ease),opacity .8s .9s;transform-style:preserve-3d;display:grid;place-items:center}
+#sp .result .assistant{position:absolute;inset:0;--s:230px}
+#sp .result .name{position:absolute;top:104%;left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap;font-family:var(--f-display);font-weight:800;font-size:1.3rem}
+#sp .result .name small{display:block;font-family:var(--f-mono);font-weight:400;font-size:.68rem;color:var(--bronze);letter-spacing:.12em;text-transform:uppercase}
+#sp .combine{position:absolute;left:50%;bottom:36px;transform:translateX(-50%)}
+#sp .flash{position:absolute;inset:0;background:radial-gradient(circle,rgba(255,244,222,.95),transparent 55%);opacity:0;pointer-events:none}
+#sp.combined .part{transform:translate3d(var(--tx),var(--ty),200px) rotateZ(var(--rz)) scale(.18);opacity:0;pointer-events:none}
+#sp.combined .part.p1{--tx:300px;--ty:30px;--rz:-40deg}#sp.combined .part.p2{--tx:0px;--ty:20px;--rz:0deg}#sp.combined .part.p3{--tx:-300px;--ty:30px;--rz:40deg}
+#sp.combined .beams{opacity:1;animation:fadeout .6s 1s forwards}
+@keyframes fadeout{to{opacity:0}}
+#sp.combined .result{transform:translateZ(120px) scale(1);opacity:1}
+#sp.combined .flash{animation:flash 1.4s .8s ease-out}
+#sp.combined .combine{opacity:0;pointer-events:none}
+#sp .reset{position:absolute;right:70px;bottom:36px;opacity:0;pointer-events:none;transition:opacity .4s 2s}
+#sp.combined .reset{opacity:1;pointer-events:auto}
+
+/* ---------- Station T: instructions template ---------- */
+#st .tpl{position:absolute;left:50%;top:150px;width:900px;transform:translateX(-50%) translateZ(60px);display:grid;grid-template-columns:1.25fr .75fr;gap:18px;align-items:start}
+#st pre{margin:0;font-family:var(--f-mono);font-size:.84rem;line-height:1.6;background:#3A2A1D;color:#F3E6D2;border-radius:18px;padding:22px 24px;white-space:pre-wrap;box-shadow:0 50px 100px -40px rgba(74,52,36,.7);border:1px solid rgba(255,255,255,.06);position:relative;overflow:hidden}
+#st pre .c{color:#D9B47F;font-weight:600}
+#st pre .ln{display:block;border-radius:6px;padding:0 6px;margin:0 -6px;transition:background .3s}
+#st pre .ln.hl{background:rgba(245,215,166,.18)}
+#st pre::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.025) 0 1px,transparent 1px 4px);pointer-events:none}
+#st .why{display:grid;gap:10px}
+#st .why button{text-align:left;padding:14px 16px;display:grid;gap:4px;border:1px solid var(--line);background:var(--paper);border-radius:14px;color:inherit;transition:transform .3s var(--ease),box-shadow .3s,border-color .3s}
+#st .why button:hover,#st .why button.on{transform:translateX(8px) translateZ(40px);border-color:var(--camel);box-shadow:0 20px 40px -20px rgba(126,83,40,.6)}
+#st .why b{font-family:var(--f-display);font-size:1.02rem}
+#st .why span{font-size:.85rem;color:var(--ink-soft)}
+#st .actions{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);display:flex;gap:10px}
 
 /* ---------- Station 2: floating objects ---------- */
 #s2 .objects{position:absolute;left:0;right:0;top:220px;display:flex;justify-content:center;gap:60px;transform-style:preserve-3d}
@@ -250,11 +294,29 @@ p{margin:0}
         </div>
       </section>
 
+      <!-- P · Three parts, one assistant -->
+      <section class="station" id="sp" aria-label="Three parts, one assistant">
+        <div class="set">
+          <div class="backwall"></div><div class="shadow"></div>
+          <div class="sign" style="top:46px"><span class="eyebrow arrive" style="--i:0">Station 2 · What an agent is made of</span><h2 class="arrive" style="--i:1">Three parts, one assistant</h2><p class="arrive" style="--i:2">Every agent you create in Copilot is built from the same three ingredients. Get these right and the rest is clicking buttons.</p></div>
+          <div class="parts">
+            <svg class="beams" aria-hidden="true" viewBox="0 0 1100 680"><line x1="215" y1="330" x2="550" y2="340"/><line x1="550" y1="330" x2="550" y2="340"/><line x1="885" y1="330" x2="550" y2="340"/></svg>
+            <div class="flash"></div>
+            <article class="part card arrive p1" style="--i:3"><div class="glyph"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/></svg></div><span class="eyebrow">01 · Purpose</span><h3>What job does it do?</h3><p>One clear task for one group of people. Narrow agents give better answers than "help with everything".</p><div class="ex">"Answer staff questions about leave and travel policy."</div></article>
+            <article class="part card arrive p2" style="--i:4"><div class="glyph"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h7"/></svg></div><span class="eyebrow">02 · Knowledge</span><h3>What should it read?</h3><p>SharePoint sites, folders, files or approved websites. It answers from these and shows where the answer came from.</p><div class="ex">HR Policies site · Leave-Policy-2026.docx</div></article>
+            <article class="part card arrive p3" style="--i:5"><div class="glyph"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/><path d="m16 16 2 2 4-4"/></svg></div><span class="eyebrow">03 · Instructions</span><h3>How should it behave?</h3><p>Tone, format, limits and what to do when it doesn't know. Plain sentences, like briefing a new colleague.</p><div class="ex">"Keep answers under 80 words. Always cite the policy."</div></article>
+            <div class="result"><div class="assistant"><i class="ring"></i><i class="ring r2"></i><i class="ring r3"></i><i class="pulse"></i><i class="pulse p2"></i><i class="orb"></i></div><div class="name"><small>Agent ready</small>Policy Helper</div></div>
+          </div>
+          <button class="btn primary combine arrive" style="--i:6" id="combineBtn">Combine into one agent</button>
+          <button class="chip reset" id="resetParts">Separate again</button>
+        </div>
+      </section>
+
       <!-- 2 · What can an agent do -->
       <section class="station" id="s2" aria-label="What can an agent do">
         <div class="set">
           <div class="backwall"></div><div class="shadow"></div>
-          <div class="sign"><span class="eyebrow arrive" style="--i:0">Station 2 · What can an agent do?</span><h2 class="arrive" style="--i:1">Pick up an object to find out</h2><p class="arrive" style="--i:2">Click each one. The best agents do one job well, and these are the three jobs people start with.</p></div>
+          <div class="sign"><span class="eyebrow arrive" style="--i:0">Station 3 · What can an agent do?</span><h2 class="arrive" style="--i:1">Pick up an object to find out</h2><p class="arrive" style="--i:2">Click each one. The best agents do one job well, and these are the three jobs people start with.</p></div>
           <div class="objects">
             <button class="obj arrive" style="--i:3" aria-expanded="false"><div class="inner">
               <div class="face front"><div class="ico"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h7"/></svg></div><div><h3>Documents</h3><span class="hint">CLICK TO REVEAL</span></div></div>
@@ -277,7 +339,7 @@ p{margin:0}
       <section class="station" id="s3" aria-label="Build your agent">
         <div class="set">
           <div class="backwall"></div><div class="shadow"></div>
-          <div class="sign" style="top:50px"><span class="eyebrow arrive" style="--i:0">Station 3 · Build your agent</span><h2 class="arrive" style="--i:1" style="font-size:2.4rem">Inside the Copilot app</h2></div>
+          <div class="sign" style="top:50px"><span class="eyebrow arrive" style="--i:0">Station 4 · Build your agent</span><h2 class="arrive" style="--i:1" style="font-size:2.4rem">Inside the Copilot app</h2></div>
           <div class="screen arrive" style="--i:2" id="screen">
             <div class="flash"></div>
             <div class="side"><div class="row">Chat</div><div class="row on">Agents</div><div class="row">Notebooks</div><div class="row cta">+ Create agent</div></div>
@@ -296,11 +358,29 @@ p{margin:0}
         </div>
       </section>
 
+      <!-- T · Instructions template -->
+      <section class="station" id="st" aria-label="Instructions template">
+        <div class="set">
+          <div class="backwall"></div><div class="shadow"></div>
+          <div class="sign" style="top:40px"><span class="eyebrow arrive" style="--i:0">Station 5 · The instructions</span><h2 class="arrive" style="--i:1">A template you can paste today</h2></div>
+          <div class="tpl">
+<pre class="arrive" style="--i:2" id="tplText"><span class="ln" data-k="role"><span class="c"># Role</span></span><span class="ln" data-k="role">You are Policy Helper, an assistant for all staff.</span><span class="ln" data-k="role">You answer questions about leave and travel policy.</span><span class="ln"> </span><span class="ln" data-k="src"><span class="c"># Sources</span></span><span class="ln" data-k="src">Answer only from the documents in the HR Policies site.</span><span class="ln" data-k="src">Always name the document and section you used.</span><span class="ln"> </span><span class="ln" data-k="style"><span class="c"># Style</span></span><span class="ln" data-k="style">Keep answers under 80 words. Use plain language.</span><span class="ln" data-k="style">Use a short bulleted list when there are steps.</span><span class="ln"> </span><span class="ln" data-k="lim"><span class="c"># Limits</span></span><span class="ln" data-k="lim">If the answer is not in the documents, say so and suggest</span><span class="ln" data-k="lim">contacting the HR team. Never guess dates or amounts.</span><span class="ln" data-k="lim">Do not give advice about individual employment cases.</span></pre>
+            <div class="why">
+              <button class="arrive" style="--i:3" data-k="role"><b>Role</b><span>Who it is and who it serves. Keeps it from wandering into other topics.</span></button>
+              <button class="arrive" style="--i:4" data-k="src"><b>Sources</b><span>Forces answers to come from your files and to show where.</span></button>
+              <button class="arrive" style="--i:5" data-k="style"><b>Style</b><span>Short, plain and scannable. Change this to match your team.</span></button>
+              <button class="arrive" style="--i:6" data-k="lim"><b>Limits</b><span>What to do when it doesn't know. The most important four lines.</span></button>
+            </div>
+          </div>
+          <div class="actions arrive" style="--i:7"><button class="btn primary" id="copyTpl">Copy the template</button><button class="btn ghost" data-go="5">Try the agent →</button></div>
+        </div>
+      </section>
+
       <!-- 4 · Try it yourself -->
       <section class="station" id="s4" aria-label="Try it yourself">
         <div class="set">
           <div class="backwall"></div>
-          <div class="sign" style="top:50px"><span class="eyebrow arrive" style="--i:0">Station 4 · Try it yourself</span><h2 class="arrive" style="--i:1">The demonstration desk</h2></div>
+          <div class="sign" style="top:50px"><span class="eyebrow arrive" style="--i:0">Station 6 · Try it yourself</span><h2 class="arrive" style="--i:1">The demonstration desk</h2></div>
           <div class="desk"></div>
           <div class="demo arrive" style="--i:2" id="demo">
             <div class="card">
@@ -333,7 +413,7 @@ p{margin:0}
       <!-- 5 · The bigger picture -->
       <section class="station" id="s5" aria-label="The bigger picture">
         <div class="set">
-          <div class="sign" style="top:30px"><span class="eyebrow arrive" style="--i:0">Station 5 · The bigger picture</span><h2 class="arrive" style="--i:1">One office, many agents</h2><p class="arrive" style="--i:2">Each team builds the agent for its own job. Click an agent to see what it does.</p></div>
+          <div class="sign" style="top:30px"><span class="eyebrow arrive" style="--i:0">Station 7 · The bigger picture</span><h2 class="arrive" style="--i:1">One office, many agents</h2><p class="arrive" style="--i:2">Each team builds the agent for its own job. Click an agent to see what it does.</p></div>
           <div class="map">
             <svg id="mapSvg" aria-hidden="true"></svg>
             <button class="agent hub arrive" style="--i:3;left:50%;top:50%" data-d="Policy Helper|HR|Answers leave and travel questions from the HR Policies site. The one we built today."><div class="assistant"><i class="ring"></i><i class="ring r2"></i><i class="pulse"></i><i class="orb"></i></div><b>Policy Helper</b><small>HR</small></button>
@@ -357,10 +437,12 @@ p{margin:0}
     <div class="brand"><i></i><span>AI Office Journey</span></div>
     <nav class="rail" id="rail" aria-label="Stations">
       <button data-go="0" class="on"><i></i><span>Welcome</span></button>
-      <button data-go="1"><i></i><span>What it does</span></button>
-      <button data-go="2"><i></i><span>Build</span></button>
-      <button data-go="3"><i></i><span>Try it</span></button>
-      <button data-go="4"><i></i><span>Big picture</span></button>
+      <button data-go="1"><i></i><span>Three parts</span></button>
+      <button data-go="2"><i></i><span>What it does</span></button>
+      <button data-go="3"><i></i><span>Build</span></button>
+      <button data-go="4"><i></i><span>Template</span></button>
+      <button data-go="5"><i></i><span>Try it</span></button>
+      <button data-go="6"><i></i><span>Big picture</span></button>
     </nav>
     <button class="chip" id="notesBtn" aria-pressed="false" title="Presenter notes (N)">Notes</button>
   </div>
@@ -368,10 +450,12 @@ p{margin:0}
   <div class="bottombar">
     <div>
       <div class="note on" data-n="0">Let the orb pulse for a few seconds. Say: "This is what we're building today. Not a chatbot that knows everything, but a colleague that knows our work." Then click Start.</div>
-      <div class="note" data-n="1">Click the objects left to right. Ask the room which of the three they'd want first. Use their answer as the running example if it fits.</div>
-      <div class="note" data-n="2">Click through the four build steps slowly. Each click is one real action in the Copilot app: Agents → Create agent → Configure.</div>
-      <div class="note" data-n="3">Click a sample question in Simulated mode first. If the Wi-Fi is good, switch to Live Copilot and ask the same question in the real app.</div>
-      <div class="note" data-n="4">Close with: "The HR one took ten minutes. Which agent would your team build?" Click two or three agents, then open for questions.</div>
+      <div class="note" data-n="1">Hover each part, then click Combine. Say: "Purpose, knowledge, instructions. That's the whole recipe." Ask which part they think people get wrong (it's usually knowledge).</div>
+      <div class="note" data-n="2">Click the objects left to right. Ask the room which of the three they'd want first. Use their answer as the running example if it fits.</div>
+      <div class="note" data-n="3">Click through the four build steps slowly. Each click is one real action in the Copilot app: Agents → Create agent → Configure.</div>
+      <div class="note" data-n="4">Click each of the four callouts to light up its lines. Then Copy the template and say it is in the follow-up email too.</div>
+      <div class="note" data-n="5">Click a sample question in Simulated mode first. If the Wi-Fi is good, switch to Live Copilot and ask the same question in the real app.</div>
+      <div class="note" data-n="6">Close with: "The HR one took ten minutes. Which agent would your team build?" Click two or three agents, then open for questions.</div>
       <div class="kbd" style="margin-top:8px"><b>→</b> next · <b>←</b> back · <b>N</b> notes · <b>F</b> full screen</div>
     </div>
     <div class="navbtns"><button class="btn ghost" id="prevBtn">← Back</button><button class="btn primary" id="nextBtn">Next station →</button></div>
@@ -386,30 +470,38 @@ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const toastEl=$('#toast');let tt;const toast=m=>{toastEl.textContent=m;toastEl.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>toastEl.classList.remove('on'),1800);};
 
 /* ---- the office layout: where each station sits in 3D space ---- */
+/* each station: where it sits, and how the camera arrives (an offset in camera space that eases away to zero) */
 const POS=[
-  {x:0,    y:0, z:0,     ry:0},
-  {x:2300, y:0, z:-700,  ry:-14},
-  {x:4800, y:0, z:-200,  ry:0},
-  {x:7100, y:0, z:-800,  ry:14},
-  {x:9700, y:0, z:0,     ry:0},
+  {x:0,     y:0, z:0,    ry:0,   from:'translateZ(-1400px)',                               label:'dolly in'},
+  {x:2300,  y:0, z:-600, ry:-12, from:'translate3d(0,-120px,-500px) rotateX(58deg)',        label:'from above, looking down'},
+  {x:4700,  y:0, z:-150, ry:0,   from:'translate3d(-700px,0,-300px) rotateY(-48deg)',        label:'sweeping in from the left'},
+  {x:7100,  y:0, z:-700, ry:12,  from:'translate3d(650px,0,-250px) rotateY(44deg)',          label:'sweeping in from the right'},
+  {x:9500,  y:0, z:-200, ry:-8,  from:'translate3d(0,420px,-500px) rotateX(-42deg)',         label:'rising from below'},
+  {x:11900, y:0, z:-650, ry:10,  from:'translate3d(0,-260px,-350px) rotateX(48deg) rotateZ(-10deg)', label:'crane shot from above, with a roll'},
+  {x:14500, y:0, z:0,    ry:0,   from:'translateZ(500px)',                                  rest:'rotateX(16deg) scale(.8)', label:'pull back to an angled overview'},
 ];
 const stations=$$('.station'), world=$('#world'), stage=$('#stage'), rig=$('#rig');
 stations.forEach((s,i)=>{const p=POS[i];s.style.transform=`translate3d(${p.x}px,${p.y}px,${p.z}px) rotateY(${p.ry}deg)`;});
-let cur=-1, travelling=false;
+let cur=-1, travelling=false, settleT=0;
 const visited=new Set();
 function go(i,instant){
   i=Math.max(0,Math.min(POS.length-1,i)); if(i===cur) return;
   const p=POS[i]; cur=i; visited.add(i);
-  world.style.transition=instant||reduce?'none':'';
-  world.style.transform=`rotateY(${-p.ry}deg) translate3d(${-p.x}px,${-p.y}px,${-p.z}px)`;
-  // the last station pulls back to show the whole office
-  if(i===4) world.style.transform='scale(.82) '+world.style.transform;
+  const final=(p.rest||'')+` rotateY(${-p.ry}deg) translate3d(${-p.x}px,${-p.y}px,${-p.z}px)`;
+  clearTimeout(settleT);
+  if(instant||reduce){world.style.transition='none';world.style.transform=final;}
+  else{
+    // two-phase camera move: travel to the approach pose, then settle into place
+    world.style.transition='transform 1.3s cubic-bezier(.6,0,.3,1)';
+    world.style.transform=p.from+' '+final;
+    settleT=setTimeout(()=>{world.style.transition='transform 1.5s cubic-bezier(.3,.6,.1,1)';world.style.transform=final;},1250);
+  }
   stations.forEach((s,k)=>{s.classList.toggle('active',k===i);s.classList.toggle('near',Math.abs(k-i)===1);});
   $$('#rail button').forEach((b,k)=>{b.classList.toggle('on',k===i);b.classList.toggle('done',visited.has(k)&&k!==i);});
   $$('.note').forEach(n=>n.classList.toggle('on',+n.dataset.n===i));
   $('#prevBtn').disabled=i===0; $('#nextBtn').textContent=i===POS.length-1?'Back to start':'Next station →';
-  if(!instant&&!reduce){stage.classList.add('travelling');document.body.classList.add('travelling');travelling=true;setTimeout(()=>{stage.classList.remove('travelling');document.body.classList.remove('travelling');travelling=false;},1900);}
-  if(i===3&&!chat.children.length) setTimeout(()=>add('b','Hi, I\'m Policy Helper. Ask me about leave or travel. I answer from the HR Policies site and show my sources.'),2200);
+  if(!instant&&!reduce){stage.classList.add('travelling');document.body.classList.add('travelling');travelling=true;setTimeout(()=>{stage.classList.remove('travelling');document.body.classList.remove('travelling');travelling=false;},2800);}
+  if(i===5&&!chat.children.length) setTimeout(()=>add('b','Hi, I\'m Policy Helper. Ask me about leave or travel. I answer from the HR Policies site and show my sources.'),3000);
 }
 $('#nextBtn').addEventListener('click',()=>go(cur===POS.length-1?0:cur+1));
 $('#prevBtn').addEventListener('click',()=>go(cur-1));
@@ -455,11 +547,25 @@ function focus(f){$$('.field').forEach(x=>x.classList.remove('focus'));f.classLi
 function type(box,text,field){focus(field);box.innerHTML='<span class="caret"></span>';return new Promise(res=>{let k=0;const tick=()=>{k+=1;box.innerHTML=text.slice(0,k)+'<span class="caret"></span>';if(k<text.length)setTimeout(tick,reduce?0:22);else{box.textContent=text;res();}};tick();});}
 buildBtn.addEventListener('click',async()=>{
   if(busyBuild) return;
-  if(step>=steps.length){go(3);return;}
+  if(step>=steps.length){go(4);return;}
   busyBuild=true;buildBtn.disabled=true;
   await steps[step].run();
   dots.forEach((d,i)=>d.classList.toggle('on',i<=step+1));
   buildBtn.textContent=steps[step].btn;step++;busyBuild=false;buildBtn.disabled=false;
+});
+
+/* ---- Station P: combine the three parts ---- */
+const sp=$('#sp');
+$('#combineBtn').addEventListener('click',()=>{sp.classList.add('combined');toast('Three parts, one agent');});
+$('#resetParts').addEventListener('click',()=>sp.classList.remove('combined'));
+
+/* ---- Station T: template ---- */
+const lns=$$('#tplText .ln'), whys=$$('#st .why button');
+whys.forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.k;const on=!b.classList.contains('on');whys.forEach(x=>x.classList.remove('on'));lns.forEach(l=>l.classList.toggle('hl',on&&l.dataset.k===k));if(on)b.classList.add('on');}));
+$('#copyTpl').addEventListener('click',()=>{
+  const text=$('#tplText').innerText.replace(/\n\s*\n\s*\n/g,'\n\n');
+  const fallback=()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Copied');}catch(_){toast('Select the text and copy it manually');}ta.remove();};
+  if(navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(()=>toast('Template copied to clipboard'),fallback); else fallback();
 });
 
 /* ---- Station 4: demo desk ---- */
