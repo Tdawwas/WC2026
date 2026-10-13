@@ -1,0 +1,497 @@
+<title>AI Office Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one full-screen 3D stage. A virtual camera travels between five stations laid out along a path; the HUD stays fixed. Single deliberate light look. */
+:root{
+  --beige:#F1E8DA;--beige-2:#E6D8C2;--paper:#FBF6EE;
+  --camel:#C19A6B;--brown:#A47E57;--bronze:#7E5328;--deep:#4A3424;
+  --ink:#36261A;--ink-soft:#6E5A47;--line:rgba(126,83,40,.18);--glow:#F5D7A6;
+  --f-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --f-body:"Figtree","Segoe UI",system-ui,-apple-system,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --travel:1.9s;--ease:cubic-bezier(.7,0,.2,1);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--beige);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;overflow:hidden}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--bronze);outline-offset:3px;border-radius:6px}
+h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.05;letter-spacing:-.02em;text-wrap:balance}
+p{margin:0}
+.eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--bronze)}
+
+/* ---------- stage + camera ---------- */
+.stage{position:fixed;inset:0;perspective:1400px;perspective-origin:50% 48%;overflow:hidden;background:
+  radial-gradient(ellipse at 50% 120%,rgba(193,154,107,.35),transparent 60%),
+  linear-gradient(180deg,#F6EFE3 0%,var(--beige) 55%,#E3D3BA 100%)}
+.stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(74,52,36,.22));z-index:3}
+.floor{position:absolute;left:-100%;right:-100%;bottom:-40%;height:120%;transform:rotateX(78deg);transform-origin:50% 0;background:
+  repeating-linear-gradient(90deg,rgba(126,83,40,.10) 0 1px,transparent 1px 120px),
+  repeating-linear-gradient(0deg,rgba(126,83,40,.10) 0 1px,transparent 1px 120px);
+  mask-image:radial-gradient(ellipse at 50% 0%,#000 20%,transparent 65%);-webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 20%,transparent 65%);opacity:.9;pointer-events:none}
+.motes{position:absolute;inset:0;pointer-events:none;z-index:2}
+.motes i{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--camel);opacity:.45;animation:mote 12s linear infinite}
+@keyframes mote{from{transform:translateY(100vh) scale(.6)}to{transform:translateY(-10vh) scale(1.2)}}
+.rig{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .9s ease-out}
+.world{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d;transition:transform var(--travel) var(--ease)}
+.station{position:absolute;left:0;top:0;width:1100px;height:680px;margin-left:-550px;margin-top:-340px;transform-style:preserve-3d;transition:opacity .6s}
+.station:not(.active):not(.near){opacity:.35}
+.station .set{position:absolute;inset:0;transform-style:preserve-3d}
+.station .shadow{position:absolute;left:50%;bottom:30px;width:70%;height:60px;transform:translateX(-50%) translateZ(-40px);border-radius:50%;background:radial-gradient(ellipse,rgba(126,83,40,.35),transparent 70%)}
+.station .backwall{position:absolute;inset:40px 60px 110px;transform:translateZ(-260px);border-radius:28px;background:linear-gradient(160deg,rgba(251,246,238,.8),rgba(230,216,194,.6));border:1px solid var(--line);box-shadow:0 60px 120px -40px rgba(126,83,40,.35)}
+.station .sign{position:absolute;left:50%;top:70px;transform:translateX(-50%) translateZ(-200px);text-align:center;width:min(80%,760px)}
+.station .sign h2{font-size:3rem;font-weight:800}
+.station .sign p{color:var(--ink-soft);font-size:1.1rem;margin-top:10px;max-width:56ch;margin-inline:auto}
+.scale-wrap{position:absolute;inset:0;transform-origin:50% 50%;transform-style:preserve-3d}
+
+/* arrive animation */
+.arrive{opacity:0;translate:0 30px;transition:opacity .8s var(--ease),translate .9s var(--ease);transition-delay:calc(var(--i,0)*.12s + .9s)}
+.station.active .arrive{opacity:1;translate:0 0}
+
+/* shared card */
+.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;box-shadow:0 30px 60px -28px rgba(126,83,40,.5);transition:transform .35s var(--ease),box-shadow .35s;position:relative}
+.card:hover{box-shadow:0 40px 80px -30px rgba(126,83,40,.6),0 0 0 1px rgba(193,154,107,.6)}
+.btn{display:inline-flex;align-items:center;gap:10px;border:0;border-radius:999px;padding:14px 26px;font-weight:600;text-decoration:none;position:relative;overflow:hidden;transition:transform .3s,box-shadow .3s}
+.btn.primary{background:linear-gradient(135deg,var(--brown),var(--bronze));color:var(--paper);box-shadow:0 12px 30px rgba(126,83,40,.35)}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1px solid var(--line)}
+.btn:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 18px 40px rgba(126,83,40,.35)}
+.btn::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);transform:translateX(-120%);transition:transform .7s}
+.btn:hover::after{transform:translateX(120%)}
+.btn:disabled{opacity:.4;pointer-events:none}
+
+/* assistant orb */
+.assistant{position:absolute;width:var(--s,220px);height:var(--s,220px);transform-style:preserve-3d;animation:hover 5s ease-in-out infinite}
+@keyframes hover{50%{transform:translateY(-16px)}}
+.assistant .ring{position:absolute;inset:0;border-radius:50%;border:1.5px dashed rgba(126,83,40,.55);animation:spin 18s linear infinite}
+.assistant .ring.r2{inset:11%;border-style:solid;border-color:rgba(193,154,107,.75);border-top-color:transparent;border-bottom-color:transparent;animation-duration:7s;animation-direction:reverse}
+.assistant .ring.r3{inset:22%;border:1px dotted var(--bronze);animation-duration:12s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.assistant .orb{position:absolute;inset:31%;border-radius:50%;background:radial-gradient(circle at 34% 30%,#FFF1D8,var(--camel) 38%,var(--bronze) 78%,#5A3818);box-shadow:0 0 50px 8px rgba(193,154,107,.7),0 0 120px 24px rgba(245,215,166,.55);animation:breathe 2s ease-in-out infinite}
+.assistant .orb::after{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.18) 0 1px,transparent 1px 5px);mix-blend-mode:overlay}
+@keyframes breathe{50%{transform:scale(1.07)}}
+.assistant .pulse{position:absolute;inset:28%;border-radius:50%;border:2px solid var(--camel);animation:pulse 2s ease-out infinite;opacity:0}
+.assistant .pulse.p2{animation-delay:1s}
+@keyframes pulse{0%{transform:scale(.9);opacity:.8}100%{transform:scale(2.3);opacity:0}}
+.assistant .face{position:absolute;inset:31%;display:grid;place-items:center;color:var(--paper);font-family:var(--f-display);font-weight:800;font-size:calc(var(--s,220px)*.11);text-shadow:0 2px 10px rgba(74,52,36,.6)}
+
+/* ---------- Station 1 ---------- */
+#s1 .assistant{left:50%;top:50%;margin:-110px 0 0 -110px;transform:translateZ(80px)}
+#s1 .start{position:absolute;left:50%;bottom:120px;transform:translateX(-50%)}
+#s1 .tag{position:absolute;font-family:var(--f-mono);font-size:.7rem;letter-spacing:.1em;color:var(--bronze);background:rgba(251,246,238,.8);border:1px solid var(--line);padding:5px 10px;border-radius:8px;animation:float 6s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-10px) translateZ(var(--z,0px))}}
+#s1 .tag.a{left:200px;top:250px;--z:120px}#s1 .tag.b{right:190px;top:300px;--z:160px;animation-delay:-2s}#s1 .tag.c{left:300px;top:470px;--z:60px;animation-delay:-4s}
+
+/* ---------- Station 2: floating objects ---------- */
+#s2 .objects{position:absolute;left:0;right:0;top:220px;display:flex;justify-content:center;gap:60px;transform-style:preserve-3d}
+.obj{width:260px;height:300px;perspective:1000px;cursor:pointer;background:none;border:0;padding:0;text-align:left;color:inherit;animation:bob 6s ease-in-out infinite}
+.obj:nth-child(2){animation-delay:-2s}.obj:nth-child(3){animation-delay:-4s}
+@keyframes bob{50%{transform:translateY(-14px)}}
+.obj .inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .9s var(--ease)}
+.obj.open .inner{transform:rotateY(180deg)}
+.obj:hover .inner{box-shadow:none}
+.obj .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;padding:24px;display:grid;align-content:space-between}
+.obj .front{background:var(--paper);border:1px solid var(--line);box-shadow:0 30px 60px -28px rgba(126,83,40,.5)}
+.obj:hover .front{box-shadow:0 40px 80px -28px rgba(126,83,40,.65),0 0 0 1px rgba(193,154,107,.6)}
+.obj .back{background:linear-gradient(160deg,var(--deep),#2F2117);color:#F3E6D2;transform:rotateY(180deg);box-shadow:0 30px 60px -28px rgba(126,83,40,.6)}
+.obj .back .eyebrow{color:var(--glow)}
+.obj .ico{width:72px;height:72px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(140deg,var(--glow),var(--camel));box-shadow:inset 0 0 0 1px rgba(255,255,255,.5),0 14px 28px -10px rgba(126,83,40,.6)}
+.obj .ico svg{width:36px;height:36px;stroke:var(--bronze);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.obj h3{font-size:1.5rem;font-weight:700;margin-top:10px}
+.obj .hint{font-family:var(--f-mono);font-size:.7rem;color:var(--bronze);letter-spacing:.1em}
+.obj .back p{font-size:1rem;line-height:1.45}
+.obj .back .q{font-family:var(--f-mono);font-size:.78rem;background:rgba(245,215,166,.15);border-radius:10px;padding:10px;color:var(--glow)}
+#s2 .count{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);font-family:var(--f-mono);font-size:.78rem;color:var(--ink-soft)}
+
+/* ---------- Station 3: Copilot screen ---------- */
+.screen{position:absolute;left:50%;top:150px;width:880px;height:420px;transform:translateX(-50%) translateZ(40px);border-radius:22px;background:var(--paper);border:1px solid var(--line);box-shadow:0 60px 120px -40px rgba(126,83,40,.55),0 0 0 10px rgba(74,52,36,.08);display:grid;grid-template-columns:200px 1fr 260px;overflow:hidden}
+.screen .side{background:var(--beige);border-right:1px solid var(--line);padding:16px;display:grid;gap:6px;align-content:start;font-size:.85rem}
+.screen .side .row{padding:8px 10px;border-radius:9px;color:var(--ink-soft)}
+.screen .side .row.on{background:var(--paper);color:var(--ink);font-weight:600;box-shadow:0 0 0 1px var(--line)}
+.screen .side .row.cta{background:var(--bronze);color:var(--paper);text-align:center;margin-top:8px}
+.screen .main{padding:22px 24px;display:grid;gap:14px;align-content:start;min-width:0}
+.screen .tabs{display:flex;gap:16px;font-size:.85rem;color:var(--ink-soft);border-bottom:1px solid var(--line)}
+.screen .tabs span{padding-bottom:8px}.screen .tabs span.on{color:var(--ink);font-weight:600;box-shadow:inset 0 -2px 0 var(--bronze)}
+.field{display:grid;gap:5px}
+.field label{font-size:.72rem;font-family:var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.field .box{min-height:38px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:.9rem;background:var(--beige);transition:box-shadow .3s,border-color .3s;white-space:pre-wrap}
+.field.focus .box{border-color:var(--camel);box-shadow:0 0 0 3px rgba(193,154,107,.25);background:var(--paper)}
+.field .box.tall{min-height:84px}
+.caret{display:inline-block;width:2px;height:1em;background:var(--bronze);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.src-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--beige);font-size:.85rem;opacity:0;transform:translateY(8px);transition:all .4s}
+.src-row.show{opacity:1;transform:none;border-color:var(--camel)}
+.src-row i{width:9px;height:9px;border-radius:50%;background:var(--bronze);flex:none}
+.screen .preview{background:var(--beige-2);border-left:1px solid var(--line);padding:16px;display:grid;gap:10px;align-content:start;font-size:.82rem}
+.screen .preview .pv{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.screen .preview .pv.u{background:var(--bronze);color:var(--paper);justify-self:end;border:0}
+.screen .preview .pv .cite{display:inline-block;margin-top:6px;font-family:var(--f-mono);font-size:.66rem;color:var(--bronze);background:var(--beige);border-radius:999px;padding:2px 8px}
+.screen .preview .empty{color:var(--ink-soft);font-style:italic}
+#s3 .stepbar{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;gap:10px;align-items:center}
+.stepdots{display:flex;gap:8px;margin-right:10px}
+.stepdots i{width:30px;height:4px;border-radius:2px;background:var(--line);transition:background .3s}
+.stepdots i.on{background:var(--bronze)}
+.screen .flash{position:absolute;inset:0;background:radial-gradient(circle,rgba(255,244,222,.9),transparent 60%);opacity:0;pointer-events:none;transition:opacity .4s}
+.screen.created .flash{animation:flash 1.2s ease-out}
+@keyframes flash{20%{opacity:1}100%{opacity:0}}
+
+/* ---------- Station 4: demo desk ---------- */
+.desk{position:absolute;left:50%;bottom:60px;width:960px;height:70px;transform:translateX(-50%) translateZ(120px) rotateX(60deg);transform-origin:50% 100%;border-radius:20px;background:linear-gradient(180deg,#B48A5E,#8E6539);box-shadow:0 40px 60px -20px rgba(74,52,36,.5)}
+.desk::after{content:"";position:absolute;inset:0;border-radius:inherit;background:repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 2px,transparent 2px 14px)}
+.demo{position:absolute;left:50%;top:150px;width:720px;transform:translateX(-50%) translateZ(60px)}
+.demo .card{padding:22px;display:grid;gap:14px}
+.demo .top{display:flex;align-items:center;gap:12px}
+.demo .av{width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 34% 30%,#FFF1D8,var(--camel) 40%,var(--bronze) 80%);box-shadow:0 0 20px rgba(193,154,107,.7);flex:none}
+.demo .top b{font-family:var(--f-display);font-size:1.1rem;display:block;line-height:1.1}
+.demo .top small{color:var(--ink-soft);font-size:.8rem}
+.mode{margin-left:auto;display:flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--beige)}
+.mode button{border:0;background:transparent;border-radius:999px;padding:6px 14px;font-size:.82rem;color:var(--ink-soft)}
+.mode button[aria-pressed="true"]{background:var(--bronze);color:var(--paper)}
+.badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--bronze);border:1px dashed var(--brown);border-radius:999px;padding:3px 10px}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--bronze);animation:blink 1.4s infinite}
+.chat{display:grid;gap:10px;min-height:170px;max-height:230px;overflow-y:auto;padding-right:4px}
+.msg{max-width:86%;padding:10px 14px;border-radius:14px;font-size:.92rem;line-height:1.45;animation:msgIn .45s var(--ease)}
+@keyframes msgIn{from{opacity:0;transform:translateY(12px) scale(.96)}}
+.msg.u{justify-self:end;background:var(--bronze);color:var(--paper);border-bottom-right-radius:4px}
+.msg.b{justify-self:start;background:var(--beige);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg .cite{display:inline-block;margin-top:8px;font-family:var(--f-mono);font-size:.7rem;color:var(--bronze);background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+.typing{display:inline-flex;gap:4px}.typing i{width:6px;height:6px;border-radius:50%;background:var(--brown);animation:bounce 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bounce{50%{transform:translateY(-5px)}}
+.qs{display:flex;gap:8px;flex-wrap:wrap}
+.qs button{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 14px;font-size:.85rem;color:var(--ink);transition:transform .2s,background .2s}
+.qs button:hover{transform:translateY(-2px);background:var(--glow)}
+.live{display:none;gap:12px;align-content:start}
+.demo.islive .live{display:grid}.demo.islive .sim{display:none}
+.live ol{margin:0;padding-left:20px;display:grid;gap:6px;color:var(--ink-soft)}
+.live .tip{font-family:var(--f-mono);font-size:.78rem;background:var(--beige);border-radius:10px;padding:10px 12px;color:var(--bronze)}
+
+/* ---------- Station 5: the office map ---------- */
+#s5 .map{position:absolute;inset:120px 80px 80px;transform-style:preserve-3d}
+#s5 svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#s5 svg line{stroke:var(--camel);stroke-width:2;stroke-dasharray:6 9;animation:dash 1.2s linear infinite;opacity:.8}
+@keyframes dash{to{stroke-dashoffset:-30}}
+#s5 svg circle.pk{fill:var(--glow);filter:drop-shadow(0 0 6px var(--camel))}
+.agent{position:absolute;width:150px;transform:translate(-50%,-50%);display:grid;justify-items:center;gap:8px;background:none;border:0;padding:0;color:inherit;transition:transform .3s}
+.agent:hover{transform:translate(-50%,-50%) scale(1.08)}
+.agent .assistant{position:relative;--s:84px}
+.agent.hub .assistant{--s:130px}
+.agent .assistant .orb{animation-duration:2s}
+.agent b{font-family:var(--f-display);font-size:1rem;text-align:center;line-height:1.1}
+.agent small{font-family:var(--f-mono);font-size:.66rem;color:var(--bronze);letter-spacing:.08em;text-transform:uppercase}
+.agent.on b{color:var(--bronze)}
+#s5 .info{position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);width:360px;padding:16px 18px;text-align:center}
+#s5 .info h3{font-size:1.1rem;margin-bottom:6px}
+#s5 .info p{color:var(--ink-soft);font-size:.9rem}
+
+/* ---------- HUD ---------- */
+.hud{position:fixed;inset:0;pointer-events:none;z-index:10;display:grid;grid-template-rows:auto 1fr auto;padding:calc(14px + env(safe-area-inset-top,0px)) 20px calc(16px + env(safe-area-inset-bottom,0px))}
+.hud>*{pointer-events:auto}
+.hud>.spacer{pointer-events:none}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:800;font-size:1.02rem}
+.brand i{width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--glow),var(--camel) 45%,var(--bronze));box-shadow:0 0 16px rgba(193,154,107,.8)}
+.rail{display:flex;gap:6px;background:rgba(251,246,238,.8);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:999px;padding:5px}
+.rail button{border:0;background:transparent;border-radius:999px;padding:6px 12px;font-size:.8rem;color:var(--ink-soft);display:flex;align-items:center;gap:8px;transition:background .3s,color .3s}
+.rail button i{width:8px;height:8px;border-radius:50%;background:var(--line);transition:background .3s,transform .3s}
+.rail button.on{background:var(--bronze);color:var(--paper)}
+.rail button.on i{background:var(--glow);transform:scale(1.2)}
+.rail button.done i{background:var(--camel)}
+.chip{border:1px solid var(--line);background:rgba(251,246,238,.8);backdrop-filter:blur(10px);color:var(--ink);padding:7px 14px;border-radius:999px;font-size:.82rem;transition:transform .2s,box-shadow .2s}
+.chip:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(126,83,40,.18)}
+.chip[aria-pressed="true"]{background:var(--bronze);color:var(--paper);border-color:var(--bronze)}
+.bottombar{display:flex;align-items:flex-end;justify-content:space-between;gap:14px}
+.navbtns{display:flex;gap:10px;margin-left:auto}
+.navbtns .btn{white-space:nowrap}
+.kbd{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-soft)}
+.kbd b{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:0 6px;background:var(--paper);font-weight:600;color:var(--ink)}
+.note{display:none;max-width:460px;border-left:3px solid var(--camel);background:rgba(251,246,238,.92);backdrop-filter:blur(8px);padding:10px 14px;border-radius:0 12px 12px 0;font-size:.88rem}
+.note::before{content:"Presenter note";display:block;font-family:var(--f-mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--bronze);margin-bottom:3px}
+.show-notes .note.on{display:block}
+.toast{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom,0px));left:50%;transform:translate(-50%,30px);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:999px;font-size:.88rem;opacity:0;transition:all .35s;z-index:60;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.travelling .station .arrive{transition-delay:0s}
+.sweep{position:fixed;inset:-20%;z-index:5;pointer-events:none;background:linear-gradient(100deg,transparent 40%,rgba(255,246,228,.55) 50%,transparent 60%);transform:translateX(-100%)}
+.travelling .sweep{animation:sweep var(--travel) ease-in-out}
+@keyframes sweep{to{transform:translateX(100%)}}
+
+@media (max-width:760px){
+  .rail button span{display:none}.rail button{padding:6px 9px}
+  .brand span{display:none}
+  .station .sign h2{font-size:2.4rem}
+  .kbd{display:none}.navbtns .btn{padding:11px 16px;font-size:.9rem}
+  .note{max-width:100%;font-size:.8rem}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important}
+  .world{transition:none}.arrive{transition:none;opacity:1;translate:0 0}
+}
+</style>
+
+<div class="stage" id="stage">
+  <div class="floor" aria-hidden="true"></div>
+  <div class="motes" id="motes" aria-hidden="true"></div>
+  <div class="rig" id="rig">
+    <div class="scale-wrap" id="scaleWrap">
+    <div class="world" id="world">
+
+      <!-- 1 · Welcome -->
+      <section class="station" id="s1" aria-label="Welcome to the AI office">
+        <div class="set">
+          <div class="backwall"></div><div class="shadow"></div>
+          <div class="sign"><span class="eyebrow arrive" style="--i:0">Station 1 · Welcome to the AI office</span><h2 class="arrive" style="--i:1">Meet your new colleague</h2><p class="arrive" style="--i:2">An agent is a version of Copilot that knows one job, reads the files you choose and follows your rules. Today we build one.</p></div>
+          <div class="assistant arrive" style="--i:3"><i class="ring"></i><i class="ring r2"></i><i class="ring r3"></i><i class="pulse"></i><i class="pulse p2"></i><i class="orb"></i><span class="face">AI</span></div>
+          <span class="tag a arrive" style="--i:4">PURPOSE</span><span class="tag b arrive" style="--i:5">KNOWLEDGE</span><span class="tag c arrive" style="--i:6">INSTRUCTIONS</span>
+          <button class="btn primary start arrive" style="--i:5" data-go="1">Start the journey →</button>
+        </div>
+      </section>
+
+      <!-- 2 · What can an agent do -->
+      <section class="station" id="s2" aria-label="What can an agent do">
+        <div class="set">
+          <div class="backwall"></div><div class="shadow"></div>
+          <div class="sign"><span class="eyebrow arrive" style="--i:0">Station 2 · What can an agent do?</span><h2 class="arrive" style="--i:1">Pick up an object to find out</h2><p class="arrive" style="--i:2">Click each one. The best agents do one job well, and these are the three jobs people start with.</p></div>
+          <div class="objects">
+            <button class="obj arrive" style="--i:3" aria-expanded="false"><div class="inner">
+              <div class="face front"><div class="ico"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h7"/></svg></div><div><h3>Documents</h3><span class="hint">CLICK TO REVEAL</span></div></div>
+              <div class="face back"><span class="eyebrow">Policy &amp; knowledge helper</span><p>Answers staff questions from your SharePoint policies and shows the exact document it used.</p><span class="q">"How many leave days can I carry over?"</span></div>
+            </div></button>
+            <button class="obj arrive" style="--i:4" aria-expanded="false"><div class="inner">
+              <div class="face front"><div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div><div><h3>Emails</h3><span class="hint">CLICK TO REVEAL</span></div></div>
+              <div class="face back"><span class="eyebrow">Drafting assistant</span><p>Drafts replies and announcements in your team's tone, using your templates and style guide as knowledge.</p><span class="q">"Draft a reply to this supplier about the delay."</span></div>
+            </div></button>
+            <button class="obj arrive" style="--i:5" aria-expanded="false"><div class="inner">
+              <div class="face front"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 20h16M7 16V9M12 16V5M17 16v-6"/></svg></div><div><h3>Reports</h3><span class="hint">CLICK TO REVEAL</span></div></div>
+              <div class="face back"><span class="eyebrow">Report summariser</span><p>Turns the monthly report folder into a short summary with the three numbers leadership asks about.</p><span class="q">"Summarise September's budget report in 5 bullets."</span></div>
+            </div></button>
+          </div>
+          <span class="count arrive" style="--i:6" id="objCount">0 of 3 revealed</span>
+        </div>
+      </section>
+
+      <!-- 3 · Build your agent -->
+      <section class="station" id="s3" aria-label="Build your agent">
+        <div class="set">
+          <div class="backwall"></div><div class="shadow"></div>
+          <div class="sign" style="top:50px"><span class="eyebrow arrive" style="--i:0">Station 3 · Build your agent</span><h2 class="arrive" style="--i:1" style="font-size:2.4rem">Inside the Copilot app</h2></div>
+          <div class="screen arrive" style="--i:2" id="screen">
+            <div class="flash"></div>
+            <div class="side"><div class="row">Chat</div><div class="row on">Agents</div><div class="row">Notebooks</div><div class="row cta">+ Create agent</div></div>
+            <div class="main">
+              <div class="tabs"><span>Describe</span><span class="on">Configure</span></div>
+              <div class="field" id="fName"><label>Name</label><div class="box" id="bName"></div></div>
+              <div class="field" id="fInst"><label>Instructions</label><div class="box tall" id="bInst"></div></div>
+              <div class="field" id="fKnow"><label>Knowledge</label><div class="src-row" id="k1"><i></i>HR Policies (SharePoint site)</div><div class="src-row" id="k2"><i></i>Leave-Policy-2026.docx</div></div>
+            </div>
+            <div class="preview"><span class="eyebrow">Test your agent</span><div id="pvBody"><div class="empty">The preview updates as you build.</div></div></div>
+          </div>
+          <div class="stepbar arrive" style="--i:3">
+            <div class="stepdots" id="stepdots"><i class="on"></i><i></i><i></i><i></i></div>
+            <button class="btn primary" id="buildNext">Name the agent</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 · Try it yourself -->
+      <section class="station" id="s4" aria-label="Try it yourself">
+        <div class="set">
+          <div class="backwall"></div>
+          <div class="sign" style="top:50px"><span class="eyebrow arrive" style="--i:0">Station 4 · Try it yourself</span><h2 class="arrive" style="--i:1">The demonstration desk</h2></div>
+          <div class="desk"></div>
+          <div class="demo arrive" style="--i:2" id="demo">
+            <div class="card">
+              <div class="top"><span class="av"></span><div><b>Policy Helper</b><small>Answers from HR Policies</small></div>
+                <div class="mode" role="group" aria-label="Demo mode"><button id="mSim" aria-pressed="true">Simulated</button><button id="mLive" aria-pressed="false">Live Copilot</button></div></div>
+              <div class="sim">
+                <span class="badge">Demonstration · simulated answers</span>
+                <div class="chat" id="chat" aria-live="polite" style="margin-top:12px"></div>
+                <div class="qs" id="qs" style="margin-top:12px">
+                  <button data-q="0">How many leave days can I carry over?</button>
+                  <button data-q="1">What can I claim for a work trip?</button>
+                  <button data-q="2">Who approves my time off?</button>
+                </div>
+              </div>
+              <div class="live">
+                <span class="badge" style="border-style:solid">Live · your real agent</span>
+                <ol>
+                  <li>Switch to your Microsoft 365 Copilot window (Alt+Tab on Windows).</li>
+                  <li>Open <b>Agents</b> and pick the agent you built.</li>
+                  <li>Ask one of the same questions and show the source link in the answer.</li>
+                </ol>
+                <div class="tip">Backup: if the live app misbehaves, switch back to Simulated and carry on.</div>
+                <a class="btn ghost" href="https://m365.cloud.microsoft/chat" target="_blank" rel="noopener">Open Copilot on the web ↗</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5 · The bigger picture -->
+      <section class="station" id="s5" aria-label="The bigger picture">
+        <div class="set">
+          <div class="sign" style="top:30px"><span class="eyebrow arrive" style="--i:0">Station 5 · The bigger picture</span><h2 class="arrive" style="--i:1">One office, many agents</h2><p class="arrive" style="--i:2">Each team builds the agent for its own job. Click an agent to see what it does.</p></div>
+          <div class="map">
+            <svg id="mapSvg" aria-hidden="true"></svg>
+            <button class="agent hub arrive" style="--i:3;left:50%;top:50%" data-d="Policy Helper|HR|Answers leave and travel questions from the HR Policies site. The one we built today."><div class="assistant"><i class="ring"></i><i class="ring r2"></i><i class="pulse"></i><i class="orb"></i></div><b>Policy Helper</b><small>HR</small></button>
+            <button class="agent arrive" style="--i:4;left:16%;top:30%" data-d="Expense Buddy|Finance|Explains what can be claimed and checks a claim against the travel policy before it is submitted."><div class="assistant"><i class="ring"></i><i class="orb"></i></div><b>Expense Buddy</b><small>Finance</small></button>
+            <button class="agent arrive" style="--i:5;left:84%;top:28%" data-d="Helpdesk Guide|IT|Walks people through password resets, VPN set-up and new-starter kit from the IT knowledge base."><div class="assistant"><i class="ring"></i><i class="orb"></i></div><b>Helpdesk Guide</b><small>IT</small></button>
+            <button class="agent arrive" style="--i:6;left:18%;top:78%" data-d="Proposal Drafter|Sales|Drafts first versions of proposals using approved case studies and the pricing sheet."><div class="assistant"><i class="ring"></i><i class="orb"></i></div><b>Proposal Drafter</b><small>Sales</small></button>
+            <button class="agent arrive" style="--i:7;left:82%;top:80%" data-d="Shift Planner|Operations|Answers rota and site-procedure questions from the operations manual."><div class="assistant"><i class="ring"></i><i class="orb"></i></div><b>Shift Planner</b><small>Operations</small></button>
+            <div class="card info arrive" style="--i:8" id="agentInfo"><span class="eyebrow">Policy Helper · HR</span><h3>Answers leave and travel questions</h3><p>From the HR Policies site. The one we built today.</p></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+    </div>
+  </div>
+  <div class="sweep" aria-hidden="true"></div>
+</div>
+
+<div class="hud">
+  <div class="topbar">
+    <div class="brand"><i></i><span>AI Office Journey</span></div>
+    <nav class="rail" id="rail" aria-label="Stations">
+      <button data-go="0" class="on"><i></i><span>Welcome</span></button>
+      <button data-go="1"><i></i><span>What it does</span></button>
+      <button data-go="2"><i></i><span>Build</span></button>
+      <button data-go="3"><i></i><span>Try it</span></button>
+      <button data-go="4"><i></i><span>Big picture</span></button>
+    </nav>
+    <button class="chip" id="notesBtn" aria-pressed="false" title="Presenter notes (N)">Notes</button>
+  </div>
+  <div class="spacer"></div>
+  <div class="bottombar">
+    <div>
+      <div class="note on" data-n="0">Let the orb pulse for a few seconds. Say: "This is what we're building today. Not a chatbot that knows everything, but a colleague that knows our work." Then click Start.</div>
+      <div class="note" data-n="1">Click the objects left to right. Ask the room which of the three they'd want first. Use their answer as the running example if it fits.</div>
+      <div class="note" data-n="2">Click through the four build steps slowly. Each click is one real action in the Copilot app: Agents → Create agent → Configure.</div>
+      <div class="note" data-n="3">Click a sample question in Simulated mode first. If the Wi-Fi is good, switch to Live Copilot and ask the same question in the real app.</div>
+      <div class="note" data-n="4">Close with: "The HR one took ten minutes. Which agent would your team build?" Click two or three agents, then open for questions.</div>
+      <div class="kbd" style="margin-top:8px"><b>→</b> next · <b>←</b> back · <b>N</b> notes · <b>F</b> full screen</div>
+    </div>
+    <div class="navbtns"><button class="btn ghost" id="prevBtn">← Back</button><button class="btn primary" id="nextBtn">Next station →</button></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const toastEl=$('#toast');let tt;const toast=m=>{toastEl.textContent=m;toastEl.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>toastEl.classList.remove('on'),1800);};
+
+/* ---- the office layout: where each station sits in 3D space ---- */
+const POS=[
+  {x:0,    y:0, z:0,     ry:0},
+  {x:2300, y:0, z:-700,  ry:-14},
+  {x:4800, y:0, z:-200,  ry:0},
+  {x:7100, y:0, z:-800,  ry:14},
+  {x:9700, y:0, z:0,     ry:0},
+];
+const stations=$$('.station'), world=$('#world'), stage=$('#stage'), rig=$('#rig');
+stations.forEach((s,i)=>{const p=POS[i];s.style.transform=`translate3d(${p.x}px,${p.y}px,${p.z}px) rotateY(${p.ry}deg)`;});
+let cur=-1, travelling=false;
+const visited=new Set();
+function go(i,instant){
+  i=Math.max(0,Math.min(POS.length-1,i)); if(i===cur) return;
+  const p=POS[i]; cur=i; visited.add(i);
+  world.style.transition=instant||reduce?'none':'';
+  world.style.transform=`rotateY(${-p.ry}deg) translate3d(${-p.x}px,${-p.y}px,${-p.z}px)`;
+  // the last station pulls back to show the whole office
+  if(i===4) world.style.transform='scale(.82) '+world.style.transform;
+  stations.forEach((s,k)=>{s.classList.toggle('active',k===i);s.classList.toggle('near',Math.abs(k-i)===1);});
+  $$('#rail button').forEach((b,k)=>{b.classList.toggle('on',k===i);b.classList.toggle('done',visited.has(k)&&k!==i);});
+  $$('.note').forEach(n=>n.classList.toggle('on',+n.dataset.n===i));
+  $('#prevBtn').disabled=i===0; $('#nextBtn').textContent=i===POS.length-1?'Back to start':'Next station →';
+  if(!instant&&!reduce){stage.classList.add('travelling');document.body.classList.add('travelling');travelling=true;setTimeout(()=>{stage.classList.remove('travelling');document.body.classList.remove('travelling');travelling=false;},1900);}
+  if(i===3&&!chat.children.length) setTimeout(()=>add('b','Hi, I\'m Policy Helper. Ask me about leave or travel. I answer from the HR Policies site and show my sources.'),2200);
+}
+$('#nextBtn').addEventListener('click',()=>go(cur===POS.length-1?0:cur+1));
+$('#prevBtn').addEventListener('click',()=>go(cur-1));
+$$('[data-go]').forEach(b=>b.addEventListener('click',()=>go(+b.dataset.go)));
+addEventListener('keydown',e=>{
+  if(e.target.closest('input,textarea')) return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(cur+1);}
+  if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(cur-1);}
+  if(e.key==='Home') go(0);
+  if(e.key==='n'||e.key==='N') toggleNotes();
+  if(e.key==='f'||e.key==='F'){if(!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(()=>toast('Full screen is not available here')); else document.exitFullscreen?.();}
+});
+const notesBtn=$('#notesBtn');
+function toggleNotes(){const on=document.body.classList.toggle('show-notes');notesBtn.setAttribute('aria-pressed',on);toast(on?'Presenter notes shown':'Presenter notes hidden');}
+notesBtn.addEventListener('click',toggleNotes);
+
+/* ---- fit the 1100px set to the window ---- */
+const wrap=$('#scaleWrap');
+function fit(){const s=Math.min(1,(innerWidth-32)/1100,(innerHeight-150)/700);wrap.style.transform=`scale(${s})`;}
+fit();addEventListener('resize',fit);
+
+/* ---- mouse parallax on the camera rig ---- */
+if(!reduce&&matchMedia('(hover:hover)').matches){
+  addEventListener('pointermove',e=>{const x=e.clientX/innerWidth-.5,y=e.clientY/innerHeight-.5;rig.style.transform=`rotateY(${x*5}deg) rotateX(${-y*3.5}deg)`;},{passive:true});
+}
+/* ---- dust motes ---- */
+const motes=$('#motes');for(let i=0;i<26;i++){const m=document.createElement('i');m.style.left=Math.random()*100+'%';m.style.animationDuration=(9+Math.random()*12)+'s';m.style.animationDelay=(-Math.random()*20)+'s';m.style.opacity=.15+Math.random()*.4;m.style.width=m.style.height=(3+Math.random()*4)+'px';motes.appendChild(m);}
+
+/* ---- Station 2: objects ---- */
+const objs=$$('.obj'), objCount=$('#objCount');
+objs.forEach(o=>o.addEventListener('click',()=>{o.classList.toggle('open');o.setAttribute('aria-expanded',o.classList.contains('open'));const n=objs.filter(x=>x.classList.contains('open')).length;objCount.textContent=n===3?'All three revealed. Ready to build one.':`${n} of 3 revealed`;}));
+
+/* ---- Station 3: build steps ---- */
+const steps=[
+  {btn:'Add instructions',run:()=>type($('#bName'),'Policy Helper',$('#fName'))},
+  {btn:'Choose knowledge',run:()=>type($('#bInst'),'Answer staff questions about leave and travel policy. Keep answers under 80 words. Always cite the policy document. If unsure, refer people to HR.',$('#fInst'))},
+  {btn:'Test and create',run:()=>{focus($('#fKnow'));setTimeout(()=>$('#k1').classList.add('show'),300);setTimeout(()=>$('#k2').classList.add('show'),900);return new Promise(r=>setTimeout(r,1400));}},
+  {btn:'Done · next station →',run:async()=>{const pv=$('#pvBody');pv.innerHTML='';pv.insertAdjacentHTML('beforeend','<div class="pv u">Can I carry over leave?</div>');await wait(900);pv.insertAdjacentHTML('beforeend','<div class="pv">Yes, up to 5 days, used by 31 March.<br><span class="cite">Leave-Policy-2026.docx · §4</span></div>');await wait(900);$('#screen').classList.add('created');toast('Agent created');}},
+];
+let step=0,busyBuild=false;const buildBtn=$('#buildNext'),dots=$$('#stepdots i');
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+function focus(f){$$('.field').forEach(x=>x.classList.remove('focus'));f.classList.add('focus');}
+function type(box,text,field){focus(field);box.innerHTML='<span class="caret"></span>';return new Promise(res=>{let k=0;const tick=()=>{k+=1;box.innerHTML=text.slice(0,k)+'<span class="caret"></span>';if(k<text.length)setTimeout(tick,reduce?0:22);else{box.textContent=text;res();}};tick();});}
+buildBtn.addEventListener('click',async()=>{
+  if(busyBuild) return;
+  if(step>=steps.length){go(3);return;}
+  busyBuild=true;buildBtn.disabled=true;
+  await steps[step].run();
+  dots.forEach((d,i)=>d.classList.toggle('on',i<=step+1));
+  buildBtn.textContent=steps[step].btn;step++;busyBuild=false;buildBtn.disabled=false;
+});
+
+/* ---- Station 4: demo desk ---- */
+const chat=$('#chat'),demo=$('#demo');
+const QA=[
+  ['How many leave days can I carry over?','You can carry over up to 5 unused days into next year. They must be used by 31 March.','Leave-Policy-2026.docx · Section 4'],
+  ['What can I claim for a work trip?','Travel, a hotel up to the city rate and meals up to the daily allowance. Keep receipts and submit within 30 days.','Travel-Expenses-Policy.pdf · Page 2'],
+  ['Who approves my time off?','Your line manager approves leave in the HR portal. For more than 10 days in a row, HR also signs off.','Leave-Policy-2026.docx · Section 2']
+];
+let busy=false;
+function add(cls,html){const m=document.createElement('div');m.className='msg '+cls;m.innerHTML=html;chat.appendChild(m);chat.scrollTop=chat.scrollHeight;return m;}
+$$('#qs button').forEach(b=>b.addEventListener('click',()=>{
+  if(busy) return;busy=true;const [q,a,s]=QA[+b.dataset.q];add('u',q);
+  const ty=add('b','<span class="typing"><i></i><i></i><i></i></span>');
+  setTimeout(()=>{ty.innerHTML='';let k=0;const st=()=>{k+=2;ty.textContent=a.slice(0,k);chat.scrollTop=chat.scrollHeight;if(k<a.length)setTimeout(st,18);else{ty.insertAdjacentHTML('beforeend','<br><span class="cite">'+s+'</span>');busy=false;chat.scrollTop=chat.scrollHeight;}};st();},900);
+}));
+$('#mSim').addEventListener('click',()=>{demo.classList.remove('islive');$('#mSim').setAttribute('aria-pressed',true);$('#mLive').setAttribute('aria-pressed',false);});
+$('#mLive').addEventListener('click',()=>{demo.classList.add('islive');$('#mSim').setAttribute('aria-pressed',false);$('#mLive').setAttribute('aria-pressed',true);});
+
+/* ---- Station 5: office map ---- */
+const svg=$('#mapSvg'),agents=$$('.agent'),hub=$('.agent.hub'),info=$('#agentInfo');
+function drawMap(){
+  const r=svg.getBoundingClientRect();if(!r.width)return;const W=1100-160,H=680-200; // map box size in set units
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.innerHTML='';
+  const c=(el)=>({x:parseFloat(el.style.left)/100*W,y:parseFloat(el.style.top)/100*H});
+  const h=c(hub);
+  agents.filter(a=>a!==hub).forEach((a,i)=>{const p=c(a);
+    svg.insertAdjacentHTML('beforeend',`<line x1="${h.x}" y1="${h.y}" x2="${p.x}" y2="${p.y}"/>`);
+    if(!reduce){svg.insertAdjacentHTML('beforeend',`<circle class="pk" r="5"><animateMotion dur="${2.6+i*.4}s" repeatCount="indefinite" path="M${h.x},${h.y} L${p.x},${p.y}"/></circle>`);}
+  });
+}
+drawMap();
+agents.forEach(a=>a.addEventListener('click',()=>{agents.forEach(x=>x.classList.remove('on'));a.classList.add('on');const [n,d,t]=a.dataset.d.split('|');const parts=t.split('. ');info.innerHTML=`<span class="eyebrow">${n} · ${d}</span><h3>${parts[0]}</h3><p>${parts.slice(1).join('. ')}</p>`;}));
+
+go(0,true);
+})();
+</script>
