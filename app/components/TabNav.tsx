@@ -1,6 +1,6 @@
 'use client';
 
-export type Tab = 'schedule' | 'rounds' | 'groups';
+export type Tab = 'schedule' | 'rounds' | 'groups' | 'teams';
 
 interface Props {
   active: Tab;
@@ -12,6 +12,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'schedule', label: 'Schedule', icon: '📅' },
   { id: 'rounds', label: 'Knockout', icon: '🏆' },
   { id: 'groups', label: 'Groups', icon: '📊' },
+  { id: 'teams', label: 'Teams', icon: '🏳️' },
 ];
 
 export default function TabNav({ active, onChange, liveCount }: Props) {
@@ -23,7 +24,7 @@ export default function TabNav({ active, onChange, liveCount }: Props) {
             key={tab.id}
             onClick={() => onChange(tab.id)}
             className={`
-              relative flex items-center gap-1.5 px-4 py-3 text-sm font-semibold
+              relative flex items-center gap-1 sm:gap-1.5 px-1 sm:px-2 py-3 text-xs sm:text-sm font-semibold
               transition-colors flex-1 justify-center
               ${active === tab.id
                 ? 'text-amber-400'
@@ -31,7 +32,7 @@ export default function TabNav({ active, onChange, liveCount }: Props) {
               }
             `}
           >
-            <span className="text-base">{tab.icon}</span>
+            <span className="hidden min-[400px]:inline text-base">{tab.icon}</span>
             <span>{tab.label}</span>
 
             {tab.id === 'schedule' && liveCount > 0 && (

@@ -8,6 +8,7 @@ import MatchCard from './components/MatchCard';
 import DateSection from './components/DateSection';
 import KnockoutView from './components/KnockoutView';
 import GroupsView from './components/GroupsView';
+import TeamsView from './components/TeamsView';
 import type { Match } from './api/matches/route';
 import type { GroupStanding } from './api/standings/route';
 
@@ -50,23 +51,23 @@ export default function Home() {
     { refreshInterval: 30_000, revalidateOnFocus: true, dedupingInterval: 10_000 }
   );
 
-  // Full tournament schedule — used by both Rounds and Groups tabs
+  // Full tournament schedule — used by Rounds, Groups and Teams tabs
   const {
     data: fullSchedule,
     isLoading: fullLoading,
   } = useSWR<{ matches: Match[] }>(
-    (tab === 'rounds' || tab === 'groups') ? '/api/schedule' : null,
+    (tab === 'rounds' || tab === 'groups' || tab === 'teams') ? '/api/schedule' : null,
     fetcher,
     { refreshInterval: 60_000, dedupingInterval: 30_000 }
   );
 
-  // Groups tab
+  // Groups and Teams tabs
   const {
     data: standingsData,
     isLoading: standingsLoading,
     error: standingsError,
   } = useSWR<{ groups: GroupStanding[] }>(
-    tab === 'groups' ? '/api/standings' : null,
+    (tab === 'groups' || tab === 'teams') ? '/api/standings' : null,
     fetcher,
     { refreshInterval: 120_000, dedupingInterval: 60_000 }
   );
@@ -202,6 +203,15 @@ export default function Home() {
             scheduleMatches={fullSchedule?.matches ?? []}
             isLoading={standingsLoading || fullLoading}
             error={!!standingsError}
+          />
+        )}
+
+        {/* ── TEAMS TAB ── */}
+        {tab === 'teams' && (
+          <TeamsView
+            groups={standingsData?.groups ?? []}
+            scheduleMatches={fullSchedule?.matches ?? []}
+            isLoading={standingsLoading || fullLoading}
           />
         )}
       </main>
